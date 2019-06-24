@@ -34,6 +34,7 @@ class GameEngine(object):
                     self.levelObjects[i][levelLineNo].name = "pellet"
                 elif levelLineSplit[i] == "@":
                     self.levelObjects[i][levelLineNo].name = "pacman"
+                    
                 elif levelLineSplit[i] == "&":
                     self.levelObjects[i][levelLineNo].name = "ghost"
 
@@ -41,11 +42,6 @@ class GameEngine(object):
             levelLineNo += 1 # indicate which line we are
                     
 
-
-
-
-                # .strip() will remove any character with passed argument
-                # nothing is passed so whitespace will removed (default)
 
 
         levelFile.close()
@@ -60,11 +56,6 @@ class levelObject(object):
         return self.name
 
 
-
-# 오브젝트 클래스
-    # def moveRequest
-        # 벽: return Wall
-        # 콩알: return Score, 자신 파괴
 
 
 gameEngine = GameEngine()
