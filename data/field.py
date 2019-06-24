@@ -1,11 +1,12 @@
 import os
 
 
-class gameEngine(object):
+class GameEngine(object):
 
     def __init__(self):
 
         self.levelObjects = [[levelObject("empty") for j in range(32)] for i in range(28)]   # generate 28x32 empty objects
+
 
     def levelGenerate(self, level):
         # set a directory for the resource file
@@ -66,5 +67,4 @@ class levelObject(object):
         # 콩알: return Score, 자신 파괴
 
 
-test = gameEngine()
-test.levelGenerate("1")
+gameEngine = GameEngine()
