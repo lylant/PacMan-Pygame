@@ -1,14 +1,6 @@
 import os
 
-# map 2차원 좌표계
-    # resource 폴더에 맵을 그려서 해당 property에서 맵을 읽어내도록 한다
-    # 맵 크기는 28x32
-    # 오브젝트는
-    #  #: 벽
-    #  .: 점수콩알
-    #  1,2,3,4: 귀신
-    #  @: 플레이어
-    
+
 class gameEngine(object):
 
     def __init__(self):
@@ -75,4 +67,4 @@ class levelObject(object):
 
 
 test = gameEngine()
-test.levelGenerate("01")
+test.levelGenerate("1")
