@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Entry, Button, PhotoImage
+from tkinter import Tk, Label, Entry, Button, PhotoImage, messagebox, END
 from threading import Timer
 from data import field
 import os
@@ -22,16 +22,40 @@ class MainEngine(object):
         self.statusCoordinateRel = [0, 0]   # Relative Coordinate, check can the player move given direction
         self.statusCoordinateAbs = [0, 0]   # Absolute Coordinate, use for widget(image) and ghost encounters
 
+        # call the next phase of initialization: read the sprites
+        self.__initSprites()
+
+
+    def __initSprites(self):
+        # read the sprite files, this can be reduced with loops, maybe?
+        self.wSpriteWall = PhotoImage(file="resource/sprite_wall.png")
+        self.wSpriteCage = PhotoImage(file="resource/sprite_wall.png")
+        self.wSpritePellet = PhotoImage(file="resource/sprite_pellet.png")
+        self.wSpriteGhost = PhotoImage(file="resource/sprite_ghost_temp.png")
+        self.wSpritePacmanL1 = PhotoImage(file="resource/sprite_pacman_left1.png")
+        self.wSpritePacmanL2 = PhotoImage(file="resource/sprite_pacman_left2.png")
+        self.wSpritePacmanL3 = PhotoImage(file="resource/sprite_pacman_left3.png")
+        self.wSpritePacmanR1 = PhotoImage(file="resource/sprite_pacman_right1.png")
+        self.wSpritePacmanR2 = PhotoImage(file="resource/sprite_pacman_right2.png")
+        self.wSpritePacmanR3 = PhotoImage(file="resource/sprite_pacman_right3.png")
+        self.wSpritePacmanU1 = PhotoImage(file="resource/sprite_pacman_up1.png")
+        self.wSpritePacmanU2 = PhotoImage(file="resource/sprite_pacman_up2.png")
+        self.wSpritePacmanU3 = PhotoImage(file="resource/sprite_pacman_up3.png")
+        self.wSpritePacmanD1 = PhotoImage(file="resource/sprite_pacman_down1.png")
+        self.wSpritePacmanD2 = PhotoImage(file="resource/sprite_pacman_down2.png")
+        self.wSpritePacmanD3 = PhotoImage(file="resource/sprite_pacman_down3.png")
+
         # call the next phase of initialization: generate widgets
         self.__initWidgets()
 
+
     def __initWidgets(self):
-        ## initialize widgets for level selection
+        # initialize widgets for level selection
         self.wLvLabel = Label(self.root, text="Select the level.")
         self.wLvEntry = Entry(self.root)
         self.wLvBtn = Button(self.root, text="Select", command=self.lvSelect, width=5, height=1)
 
-        ## initialize widgets for the game
+        # initialize widgets for the game
         self.wGameLabelScore = Label(self.root, text=("Score: " + str(self.statusScore)))
         self.wGameLabelLife = Label(self.root, text=("Life: " + str(self.statusLife)))
         self.wGameLabelLineTop = Label(self.root, text="- " * 48)
@@ -39,33 +63,56 @@ class MainEngine(object):
         self.wGameLabelObjects = [[Label(self.root, image=None) for j in range(32)] for i in range(28)]
 
 
-
-        ## key binds for the game control
+        # key binds for the game control
         self.root.bind('<Left>', self.inputResponseLeft)
         self.root.bind('<Right>', self.inputResponseRight)
         self.root.bind('<Up>', self.inputResponseUp)
         self.root.bind('<Down>', self.inputResponseDown)
         self.root.bind('<Escape>', self.inputResponseEsc)
 
-        self.__initLevel(1)
+        # call the next phase of initialization: level selection
+        self.__initLevelSelect()
+
+
+    def __initLevelSelect(self):
+        ## level selection, showing all relevant widgets
+        self.wLvLabel.pack()
+        self.wLvEntry.pack()
+        self.wLvBtn.pack()
+
+        # execute the game
+        self.root.mainloop()
+
+
 
     def lvSelect(self):
-        pass
+        try:
+            self.__initLevel(self.wLvEntry.get())
+        
+        except FileNotFoundError:
+            self.wLvEntry.delete(0, END)  # clear the text box
+            messagebox.showinfo("Error!", "Enter a valid level.")
+
 
 
 
     def __initLevel(self, level):
 
-        self.isPlaying = True
         field.gameEngine.levelGenerate(level)   # generate selected/passed level
+
+        if self.isPlaying == False:
+            self.wLvLabel.destroy()
+            self.wLvEntry.destroy()
+            self.wLvBtn.destroy()
+            self.isPlaying = True
 
         ## bind the sprite on widgets with generated map
         # read the sprites from resource folder
-        imgWall = PhotoImage(file="resource/sprite_wall.png")
-        imgCage = PhotoImage(file="resource/sprite_wall.png")
-        imgPellet = PhotoImage(file="resource/sprite_pellet.png")
-        imgGhost = PhotoImage(file="resource/sprite_ghost_temp.png")
-        imgPacman = PhotoImage(file="resource/sprite_pacman_left1.png")
+        self.imgWall = PhotoImage(file="resource/sprite_wall.png")
+        self.imgCage = PhotoImage(file="resource/sprite_wall.png")
+        self.imgPellet = PhotoImage(file="resource/sprite_pellet.png")
+        self.imgGhost = PhotoImage(file="resource/sprite_ghost_temp.png")
+        self.imgPacman = PhotoImage(file="resource/sprite_pacman_left1.png")
 
         # check the name of the object and bind the sprite
         for j in range(32):
@@ -74,15 +121,15 @@ class MainEngine(object):
                 if field.gameEngine.levelObjects[i][j].name == "empty":
                     pass
                 elif field.gameEngine.levelObjects[i][j].name == "wall":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=imgWall)
+                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteWall)
                 elif field.gameEngine.levelObjects[i][j].name == "cage":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=imgCage)
+                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteCage)
                 elif field.gameEngine.levelObjects[i][j].name == "pellet":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=imgPellet)
+                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpritePellet)
                 elif field.gameEngine.levelObjects[i][j].name == "ghost":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=imgGhost)
+                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteGhost)
                 elif field.gameEngine.levelObjects[i][j].name == "pacman":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=imgPacman)
+                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpritePacmanL1)
                     # pass the current Pac-Man's coordinate
                     self.statusCoordinateRel[0] = i
                     self.statusCoordinateRel[1] = j
@@ -90,8 +137,6 @@ class MainEngine(object):
                     self.statusCoordinateAbs[1] = 3*j
             
                 self.wGameLabelObjects[i][j].place(x=i*17, y=40+j*17)
-
-        self.root.mainloop()
 
 
 
@@ -112,11 +157,8 @@ class MainEngine(object):
 
 
 
-main = MainEngine()
+mainEngine = MainEngine()
 
-# initialize map
-    # field에서 generate된 맵을 받아와서 widget을 배치한다
-    # 각 오브젝트의 개수를 받는다?
 
 
 # treading Timer
