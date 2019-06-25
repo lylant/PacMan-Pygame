@@ -19,8 +19,6 @@ class MainEngine(object):
         self.isPlaying = False
         self.statusScore = 0
         self.statusLife = 2
-        self.statusCoordinateRel = [0, 0]   # Relative Coordinate, check can the player move given direction
-        self.statusCoordinateAbs = [0, 0]   # Absolute Coordinate, use for widget(image) and ghost encounters
 
         # call the next phase of initialization: read the sprites
         self.__initSprites()
@@ -58,10 +56,8 @@ class MainEngine(object):
         # initialize widgets for the game
         self.wGameLabelScore = Label(self.root, text=("Score: " + str(self.statusScore)))
         self.wGameLabelLife = Label(self.root, text=("Life: " + str(self.statusLife)))
-        self.wGameLabelLineTop = Label(self.root, text="- " * 48)
-        self.wGameLabelLineBot = Label(self.root, text="- " * 48)
         self.wGameLabelObjects = [[Label(self.root, image=None) for j in range(32)] for i in range(28)]
-
+        self.wGameLabelMovingObjects = [Label(self.root, image=None) for n in range(5)] # 0: pacman, 1-4: ghosts
 
         # key binds for the game control
         self.root.bind('<Left>', self.inputResponseLeft)
@@ -126,16 +122,8 @@ class MainEngine(object):
                     self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteCage)
                 elif field.gameEngine.levelObjects[i][j].name == "pellet":
                     self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpritePellet)
-                elif field.gameEngine.levelObjects[i][j].name == "ghost":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteGhost)
-                elif field.gameEngine.levelObjects[i][j].name == "pacman":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpritePacmanL1)
-                    # pass the current Pac-Man's coordinate
-                    self.statusCoordinateRel[0] = i
-                    self.statusCoordinateRel[1] = j
-                    self.statusCoordinateAbs[0] = 3*i
-                    self.statusCoordinateAbs[1] = 3*j
-            
+
+
                 self.wGameLabelObjects[i][j].place(x=i*17, y=40+j*17)
 
 
