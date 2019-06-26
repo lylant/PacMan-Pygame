@@ -129,19 +129,88 @@ class MainEngine(object):
 
 
     def inputResponseLeft(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Left"
 
     def inputResponseRight(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Right"
 
     def inputResponseUp(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Up"
     
     def inputResponseDown(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Down"
 
     def inputResponseEsc(self, event):
-        pass
+        field.gameEngine.loopFunction()
+        self.loopFunction()
+
+    def loopFunction(self):
+
+        coordRelP = field.gameEngine.movingObjectPacman.coordinateRel   # pacman relative coordinate
+        coordAbsP = field.gameEngine.movingObjectPacman.coordinateAbs   # pacman absolute coordinate
+
+
+
+        ## pacman sprite feature
+        if field.gameEngine.movingObjectPacman.dirCurrent == "Left":
+            if coordAbsP[0] % 3 == 0:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=None)
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanL1)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+            elif coordAbsP[0] % 3 == 1:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=None)
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanL2)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+6, y=40+(coordAbsP[1]//3)*17)
+            elif coordAbsP[0] % 3 == 2:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=None)
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanL3)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+12, y=40+(coordAbsP[1]//3)*17)
+
+        elif field.gameEngine.movingObjectPacman.dirCurrent == "Right":
+            if coordAbsP[0] % 3 == 0:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanR1)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+            elif coordAbsP[0] % 3 == 1:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanR2)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+6, y=40+(coordAbsP[1]//3)*17)
+            elif coordAbsP[0] % 3 == 2:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanR3)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+12, y=40+(coordAbsP[1]//3)*17)
+
+        elif field.gameEngine.movingObjectPacman.dirCurrent == "Up":
+            if coordAbsP[1] % 3 == 0:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanU1)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+            elif coordAbsP[1] % 3 == 1:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanU2)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+6)
+            elif coordAbsP[1] % 3 == 2:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanU3)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+12)
+
+        elif field.gameEngine.movingObjectPacman.dirCurrent == "Down":
+            if coordAbsP[1] % 3 == 0:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanD1)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+            elif coordAbsP[1] % 3 == 1:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanD2)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+6)
+            elif coordAbsP[1] % 3 == 2:
+                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanD3)
+                self.wGameLabelMovingObjects[0].place_forget
+                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+12)
+
 
 
 
