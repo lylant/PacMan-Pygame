@@ -42,10 +42,10 @@ class GameEngine(object):
                     self.levelObjects[i][levelLineNo].name = "empty"
 
                     # give the starting coordinate
-                    self.movingObjectPacman.CoordinateRel[0] = i
-                    self.movingObjectPacman.CoordinateRel[1] = levelLineNo
-                    self.movingObjectPacman.CoordinateAbs[0] = i * 3
-                    self.movingObjectPacman.CoordinateAbs[1] = levelLineNo * 3
+                    self.movingObjectPacman.coordinateRel[0] = i
+                    self.movingObjectPacman.coordinateRel[1] = levelLineNo
+                    self.movingObjectPacman.coordinateAbs[0] = i * 3
+                    self.movingObjectPacman.coordinateAbs[1] = levelLineNo * 3
 
 
                 elif levelLineSplit[i] == "&":  # ghost
@@ -89,8 +89,8 @@ class movingObject(object):
         self.isActive = False   # check this object is ingame
         self.dirCurrent = "Left" # current direction, if cannot move w/ dirNext, the object will proceed this direction
         self.dirNext = "Left"   # the object will move this direction if it can
-        self.CoordinateRel = [0, 0]   # Relative Coordinate, check can the object move given direction
-        self.CoordinateAbs = [0, 0]   # Absolute Coordinate, use for widget(image) and object encounters
+        self.coordinateRel = [0, 0]   # Relative Coordinate, check can the object move given direction
+        self.coordinateAbs = [0, 0]   # Absolute Coordinate, use for widget(image) and object encounters
 
     def MoveNext(self, GameEngine):
         ## this function will determine the object can move with given direction or not
@@ -100,7 +100,7 @@ class movingObject(object):
         
         else:
             if self.dirNext == "Left":  # check the direction first
-                nextObject = GameEngine.levelObjects[self.CoordinateRel[0]-1][self.CoordinateRel[1]] # levelObject placed left of this object
+                nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject placed left of this object
 
                 # check the levelObject and allow movingObject to change its current direction
                 if nextObject.name == ("empty" or "pellet" or "powerup"):
@@ -110,7 +110,7 @@ class movingObject(object):
                 
 
             elif self.dirNext == "Right":
-                nextObject = GameEngine.levelObjects[self.CoordinateRel[0]+1][self.CoordinateRel[1]] # levelObject placed right of this object
+                nextObject = GameEngine.levelObjects[self.coordinateRel[0]+1][self.coordinateRel[1]] # levelObject placed right of this object
 
                 # check the levelObject and allow movingObject to change its current direction
                 if nextObject.name == ("empty" or "pellet" or "powerup"):
@@ -120,7 +120,7 @@ class movingObject(object):
 
 
             elif self.dirNext == "Up":
-                nextObject = GameEngine.levelObjects[self.CoordinateRel[0]][self.CoordinateRel[1]+1] # levelObject placed up of this object
+                nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]+1] # levelObject placed up of this object
 
                 # check the levelObject and allow movingObject to change its current direction
                 if nextObject.name == ("empty" or "pellet" or "powerup"):
@@ -130,7 +130,7 @@ class movingObject(object):
 
 
             elif self.dirNext == "Down":
-                nextObject = GameEngine.levelObjects[self.CoordinateRel[0]][self.CoordinateRel[1]-1] # levelObject placed down of this object
+                nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]-1] # levelObject placed down of this object
 
                 # check the levelObject and allow movingObject to change its current direction
                 if nextObject.name == ("empty" or "pellet" or "powerup"):
@@ -139,9 +139,72 @@ class movingObject(object):
                     pass
         
     
-    def MoveCurrent(self):
-        pass
-        # 3으로 나눠서 rel좌표를 건드리거나 하는 판단을 해준다
+    def MoveCurrent(self, GameEngine):
+
+        if self.dirCurrent == "Left":
+            nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject placed left of this object
+
+            # check the levelObject and allow movingObject to move its current direction
+            if nextObject.name == ("empty" or "pellet" or "powerup"):
+                if self.coordinateAbs[0] == 0:  # at left edge, move to right edge
+                    self.coordinateAbs[0] = 27*3 + 2
+                else:
+                    self.coordinateAbs[0] -= 1  # adjust current coordinate
+                    if self.coordinateAbs[0] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                        self.coordinateRel[0] -= 1
+
+            elif nextObject.name == ("wall" or "cage"):
+                self.dirCurrent = "Stop"
+
+
+        elif self.dirCurrent == "Right":
+            nextObject = GameEngine.levelObjects[self.coordinateRel[0]+1][self.coordinateRel[1]] # levelObject placed right of this object
+
+            # check the levelObject and allow movingObject to move its current direction
+            if nextObject.name == ("empty" or "pellet" or "powerup"):
+                if self.coordinateAbs[0] == 27*3 + 2:  # at right edge, move to left edge
+                    self.coordinateAbs[0] = 0
+                    self.coordinateRel[0] = 0
+                else:
+                    self.coordinateAbs[0] += 1  # adjust current coordinate
+                    if self.coordinateAbs[0] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                        self.coordinateRel[0] += 1
+
+            elif nextObject.name == ("wall" or "cage"):
+                self.dirCurrent = "Stop"
+
+
+        elif self.dirCurrent == "Up":
+            nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]+1] # levelObject placed up of this object
+
+            # check the levelObject and allow movingObject to move its current direction
+            if nextObject.name == ("empty" or "pellet" or "powerup"):
+                if self.coordinateAbs[1] == 0:  # at top edge, move to bottom edge
+                    self.coordinateAbs[1] = 31*3 + 2
+                else:
+                    self.coordinateAbs[1] += 1  # adjust current coordinate
+                    if self.coordinateAbs[1] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                        self.coordinateRel[1] += 1
+
+            elif nextObject.name == ("wall" or "cage"):
+                self.dirCurrent = "Stop"
+
+
+        elif self.dirCurrent == "Down":
+            nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]-1] # levelObject placed down of this object
+
+            # check the levelObject and allow movingObject to move its current direction
+            if nextObject.name == ("empty" or "pellet" or "powerup"):
+                if self.coordinateAbs[1] == 31*3 + 2:  # at bottom edge, move to top edge
+                    self.coordinateAbs[1] = 0
+                    self.coordinateRel[1] = 0
+                else:
+                    self.coordinateAbs[1] -= 1  # adjust current coordinate
+                    if self.coordinateAbs[1] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                        self.coordinateRel[1] -= 1
+
+            elif nextObject.name == ("wall" or "cage"):
+                self.dirCurrent = "Stop"
 
 
 gameEngine = GameEngine()

@@ -129,19 +129,19 @@ class MainEngine(object):
 
 
     def inputResponseLeft(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Left"
 
     def inputResponseRight(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Right"
 
     def inputResponseUp(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Up"
     
     def inputResponseDown(self, event):
-        pass
+        field.gameEngine.movingObjectPacman.dirNext = "Down"
 
     def inputResponseEsc(self, event):
-        pass
+        field.gameEngine.loopFunction()
 
 
 
