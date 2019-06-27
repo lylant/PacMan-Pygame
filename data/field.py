@@ -69,6 +69,20 @@ class GameEngine(object):
         levelFile.close()
 
 
+    def encounterEvent(self, x, y):
+        if self.levelObjects[x][y].name == "empty":
+            result = "empty"
+
+        elif self.levelObjects[x][y].name == "pellet":
+            result = "pellet"
+
+        elif self.levelObjects[x][y].name == "powerup":
+            result = "powerup"
+        
+        return result
+
+
+
     def loopFunction(self):
         self.movingObjectPacman.MoveNext(self)
         self.movingObjectPacman.MoveCurrent(self)
@@ -76,21 +90,6 @@ class GameEngine(object):
         #for i in range(4):
         #    self.movingObjectGhosts[i].MoveNext(self)
         #    self.movingObjectGhosts[i].MoveCurrent(self)
-
-
-
-
-# treading Timer
-    # 주인공은 지정된 방향으로 좌표 이동, moveRequest를 해당 방향으로
-    # 만약 주인공 좌표가 (x,y)이고 방향이 right라면 (x,y+1)에 해당하는 오브젝트의 moveRequest를 불러온다
-    # moveRequest의 return을 받아보고 갈 수 있는지 여부를 판단하고 실제 이동에 해당하는 function을 불러온다
-    # 실제 이동에 해당하는 function은 좌표계를 3개로 쪼개서 이동하면서 스프라이트를 바꿔준다
-
-    # if문을 이용하여 wall, pellet은 pass하고 팩맨, 고스트 등 움직이는 오브젝트만 place로 좌표를 재지정한다
-
-
-    # 귀신들은 ai 만들기 힘드니까 지정된 구역 순찰해놓고 v1.1.0에서 알고리즘 develop해서 릴리즈
-    # 한칸씩 움직임
 
 
 
