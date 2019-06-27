@@ -124,6 +124,12 @@ class movingObject(object):
         if self.dirNext == self.dirCurrent: # in this case, no action is required
             pass
         
+        elif self.coordinateAbs[0] % 3 != 0: # if the object is moving, prevent to change its direction
+            pass
+
+        elif self.coordinateAbs[1] % 3 != 0: # if the object is moving, prevent to change its direction
+            pass
+
         else:
             if self.dirNext == "Left":  # check the direction first
                 nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject placed left of this object
@@ -169,30 +175,20 @@ class movingObject(object):
 
         if self.dirCurrent == "Left":
             nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject placed left of this object
-            print("coordRel(X): ", self.coordinateRel[0], "coordRel(Y): ", self.coordinateRel[1], "Left Called")
-            print("coordAbs(X): ", self.coordinateAbs[0], "coordAbs(Y): ", self.coordinateAbs[1], "Left Called")
 
             # check the levelObject and allow movingObject to move its current direction
             if nextObject.name in GameEngine.levelObjectNamesPassable:
                 if self.coordinateAbs[0] == 0:  # at left edge, move to right edge
                     self.coordinateAbs[0] = 27*3 + 2
-                    print("coordRel(X): ", self.coordinateRel[0], "coordRel(Y): ", self.coordinateRel[1], "Left edge")
-                    print("coordAbs(X): ", self.coordinateAbs[0], "coordAbs(Y): ", self.coordinateAbs[1], "Left edge")
 
                 else:
                     self.coordinateAbs[0] -= 1  # adjust current coordinate
-                    print("coordRel(X): ", self.coordinateRel[0], "coordRel(Y): ", self.coordinateRel[1], "Left going")
-                    print("coordAbs(X): ", self.coordinateAbs[0], "coordAbs(Y): ", self.coordinateAbs[1], "Left going")
 
                     if self.coordinateAbs[0] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
                         self.coordinateRel[0] -= 1
-                        print("coordRel(X): ", self.coordinateRel[0], "coordRel(Y): ", self.coordinateRel[1], "Left grid pt")
-                        print("coordAbs(X): ", self.coordinateAbs[0], "coordAbs(Y): ", self.coordinateAbs[1], "Left grid pt")
 
             elif nextObject.name in GameEngine.levelObjectNamesBlocker:
                 self.dirCurrent = "Stop"
-                print("coordRel(X): ", self.coordinateRel[0], "coordRel(Y): ", self.coordinateRel[1], "Left stop")
-                print("coordAbs(X): ", self.coordinateAbs[0], "coordAbs(Y): ", self.coordinateAbs[1], "Left stop")
 
 
         elif self.dirCurrent == "Right":
