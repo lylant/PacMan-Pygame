@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Entry, Button, PhotoImage, messagebox, END
+from tkinter import Tk, Label, Entry, Button, PhotoImage, messagebox, END, Canvas
 from threading import Timer
 from data import field
 import os
@@ -26,6 +26,7 @@ class MainEngine(object):
 
     def __initSprites(self):
         # read the sprite files, this can be reduced with loops, maybe?
+        self.wSpriteEmpty = PhotoImage(file="resource/sprite_dummy.png")
         self.wSpriteWall = PhotoImage(file="resource/sprite_wall.png")
         self.wSpriteCage = PhotoImage(file="resource/sprite_wall.png")
         self.wSpritePellet = PhotoImage(file="resource/sprite_pellet.png")
@@ -56,8 +57,10 @@ class MainEngine(object):
         # initialize widgets for the game
         self.wGameLabelScore = Label(self.root, text=("Score: " + str(self.statusScore)))
         self.wGameLabelLife = Label(self.root, text=("Life: " + str(self.statusLife)))
-        self.wGameLabelObjects = [[Label(self.root, image=None) for j in range(32)] for i in range(28)]
-        self.wGameLabelMovingObjects = [Label(self.root, image=None) for n in range(5)] # 0: pacman, 1-4: ghosts
+        self.wGameCanv = Canvas(width=480, height=640)
+        self.wGameCanvObjects = [[self.wGameCanv.create_image(0,0,image=None) for j in range(32)] for i in range(28)]
+        self.wGameCanvMovingObjects = [self.wGameCanv.create_image(0,0,image=None) for n in range(5)] # 0: pacman, 1-4: ghosts
+        #self.fuk=self.wGameCanv.create_image(30,30,image=self.wSpriteGhost)
 
         # key binds for the game control
         self.root.bind('<Left>', self.inputResponseLeft)
@@ -100,15 +103,10 @@ class MainEngine(object):
             self.wLvLabel.destroy()
             self.wLvEntry.destroy()
             self.wLvBtn.destroy()
+            self.wGameCanv.pack()
             self.isPlaying = True
 
-        ## bind the sprite on widgets with generated map
-        # read the sprites from resource folder
-        self.imgWall = PhotoImage(file="resource/sprite_wall.png")
-        self.imgCage = PhotoImage(file="resource/sprite_wall.png")
-        self.imgPellet = PhotoImage(file="resource/sprite_pellet.png")
-        self.imgGhost = PhotoImage(file="resource/sprite_ghost_temp.png")
-        self.imgPacman = PhotoImage(file="resource/sprite_pacman_left1.png")
+
 
         # check the name of the object and bind the sprite
         for j in range(32):
@@ -117,15 +115,19 @@ class MainEngine(object):
                 if field.gameEngine.levelObjects[i][j].name == "empty":
                     pass
                 elif field.gameEngine.levelObjects[i][j].name == "wall":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteWall)
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSpriteWall)
+                    self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 40+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "cage":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpriteCage)
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSpriteCage)
+                    self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 40+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "pellet":
-                    self.wGameLabelObjects[i][j] = Label(self.root, image=self.wSpritePellet)
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSpritePellet)
+                    self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 40+j*17+8)
 
-
-                self.wGameLabelObjects[i][j].place(x=i*17, y=40+j*17)
-
+        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL1)
+        self.wGameCanv.move(self.wGameCanvMovingObjects[0],
+                            field.gameEngine.movingObjectPacman.coordinateRel[0]*17+8,
+                            40+field.gameEngine.movingObjectPacman.coordinateRel[1]*17+8)
 
 
     def inputResponseLeft(self, event):
@@ -146,7 +148,7 @@ class MainEngine(object):
 
     def loopFunction(self):
 
-        coordRelP = field.gameEngine.movingObjectPacman.coordinateRel   # pacman relative coordinate
+        #coordRelP = field.gameEngine.movingObjectPacman.coordinateRel   # pacman relative coordinate
         coordAbsP = field.gameEngine.movingObjectPacman.coordinateAbs   # pacman absolute coordinate
 
 
@@ -154,62 +156,47 @@ class MainEngine(object):
         ## pacman sprite feature
         if field.gameEngine.movingObjectPacman.dirCurrent == "Left":
             if coordAbsP[0] % 3 == 0:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=None)
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanL1)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL1)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -6, 0)
             elif coordAbsP[0] % 3 == 1:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=None)
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanL2)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+6, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -6, 0)
             elif coordAbsP[0] % 3 == 2:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=None)
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanL3)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+12, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL3)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -5, 0)
 
         elif field.gameEngine.movingObjectPacman.dirCurrent == "Right":
             if coordAbsP[0] % 3 == 0:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanR1)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR1)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 6, 0)
             elif coordAbsP[0] % 3 == 1:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanR2)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+6, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 6, 0)
             elif coordAbsP[0] % 3 == 2:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanR3)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17+12, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR3)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 5, 0)
 
         elif field.gameEngine.movingObjectPacman.dirCurrent == "Up":
             if coordAbsP[1] % 3 == 0:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanU1)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU1)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -6)
             elif coordAbsP[1] % 3 == 1:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanU2)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+6)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -6)
             elif coordAbsP[1] % 3 == 2:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanU3)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+12)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU3)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -5)
 
         elif field.gameEngine.movingObjectPacman.dirCurrent == "Down":
             if coordAbsP[1] % 3 == 0:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanD1)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD1)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 6)
             elif coordAbsP[1] % 3 == 1:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanD2)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+6)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 6)
             elif coordAbsP[1] % 3 == 2:
-                self.wGameLabelMovingObjects[0] = Label(self.root, image=self.wSpritePacmanD3)
-                self.wGameLabelMovingObjects[0].place_forget
-                self.wGameLabelMovingObjects[0].place(x=(coordAbsP[0]//3)*17, y=40+(coordAbsP[1]//3)*17+12)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD3)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 5)
 
 
 
