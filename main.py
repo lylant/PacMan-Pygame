@@ -20,11 +20,11 @@ class MainEngine(object):
         self.statusScore = 0
         self.statusLife = 2
 
-        # call the next phase of initialization: read the sprites
-        self.__initSprites()
+        # call the next phase of initialization: loading resources
+        self.__initResource()
 
 
-    def __initSprites(self):
+    def __initResource(self):
         # read the sprite files, this can be reduced with loops, maybe?
         self.wSpriteWall = PhotoImage(file="resource/sprite_wall.png")
         self.wSpriteCage = PhotoImage(file="resource/sprite_wall.png")
@@ -165,6 +165,14 @@ class MainEngine(object):
         ## pacman sprite feature
         # this will adjust the coordinate of the sprite and make them animated, based on their absoluteCoord.
         if field.gameEngine.movingObjectPacman.dirCurrent == "Left":
+
+            # check the object passed field edges
+            if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 17*27+17, 0)    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                field.gameEngine.movingObjectPacman.dirEdgePassed = False
+            else:
+                pass
+
             if coordAbsP[0] % 3 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL2)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -6, 0)
@@ -175,7 +183,16 @@ class MainEngine(object):
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -5, 0)
 
+
         elif field.gameEngine.movingObjectPacman.dirCurrent == "Right":
+
+            # check the object passed field edges
+            if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -(17*27+17), 0)    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                field.gameEngine.movingObjectPacman.dirEdgePassed = False
+            else:
+                pass
+
             if coordAbsP[0] % 3 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR2)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 6, 0)
@@ -186,7 +203,16 @@ class MainEngine(object):
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 5, 0)
 
+
         elif field.gameEngine.movingObjectPacman.dirCurrent == "Up":
+
+            # check the object passed field edges
+            if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 17*27+17)    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                field.gameEngine.movingObjectPacman.dirEdgePassed = False
+            else:
+                pass
+
             if coordAbsP[1] % 3 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU2)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -6)
@@ -197,7 +223,16 @@ class MainEngine(object):
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -5)
 
+
         elif field.gameEngine.movingObjectPacman.dirCurrent == "Down":
+
+            # check the object passed field edges
+            if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -(17*27+17))    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                field.gameEngine.movingObjectPacman.dirEdgePassed = False
+            else:
+                pass
+
             if coordAbsP[1] % 3 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD2)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 6)
@@ -207,6 +242,7 @@ class MainEngine(object):
             elif coordAbsP[1] % 3 == 2:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 5)
+
 
         ## encounter features
         if coordAbsP[0] % 3 == 0 and coordAbsP[1] % 3 == 0:
