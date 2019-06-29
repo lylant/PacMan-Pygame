@@ -30,7 +30,7 @@ class MainEngine(object):
         self.wSprites = {
             'wall': PhotoImage(file="resource/sprite_wall.png"),
             'cage': PhotoImage(file="resource/sprite_cage.png"),
-            'pellet': PhotoImage(file="resource/sprite_pellet.png"),
+            'pellet': PhotoImage(file="resource/sprite_pellet.png")
         }
 
         # bind sprites for moving objects
@@ -160,15 +160,20 @@ class MainEngine(object):
 
     def inputResponseLeft(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Left"
+        field.gameEngine.movingObjectGhosts[0].dirNext = "Left"
 
     def inputResponseRight(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Right"
+        field.gameEngine.movingObjectGhosts[0].dirNext = "Right"
 
     def inputResponseUp(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Up"
+        field.gameEngine.movingObjectGhosts[0].dirNext = "Up"
     
     def inputResponseDown(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Down"
+        field.gameEngine.movingObjectGhosts[0].dirNext = "Down"
+
 
     def inputResponseEsc(self, event):
         self.loopTimer.stop() 
@@ -189,6 +194,7 @@ class MainEngine(object):
         for i in range(4):
             coordGhosts['RelG{}'.format(i+1)] = field.gameEngine.movingObjectGhosts[i].coordinateRel    # ghosts relative coordinate
             coordGhosts['AbsG{}'.format(i+1)] = field.gameEngine.movingObjectGhosts[i].coordinateAbs    # ghosts absolute coordinate
+
 
 
         ## pacman sprite feature
