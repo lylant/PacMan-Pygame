@@ -47,8 +47,8 @@ class GameEngine(object):
                     # give the starting coordinate
                     self.movingObjectPacman.coordinateRel[0] = i
                     self.movingObjectPacman.coordinateRel[1] = levelLineNo
-                    self.movingObjectPacman.coordinateAbs[0] = i * 3
-                    self.movingObjectPacman.coordinateAbs[1] = levelLineNo * 3
+                    self.movingObjectPacman.coordinateAbs[0] = i * 4
+                    self.movingObjectPacman.coordinateAbs[1] = levelLineNo * 4
 
 
                 elif levelLineSplit[i] == "&":  # ghost
@@ -60,8 +60,8 @@ class GameEngine(object):
                             self.movingObjectGhosts[n].isActive = True
                             self.movingObjectGhosts[n].coordinateRel[0] = i
                             self.movingObjectGhosts[n].coordinateRel[1] = levelLineNo
-                            self.movingObjectGhosts[n].coordinateAbs[0] = i * 3
-                            self.movingObjectGhosts[n].coordinateAbs[1] = levelLineNo * 3
+                            self.movingObjectGhosts[n].coordinateAbs[0] = i * 4
+                            self.movingObjectGhosts[n].coordinateAbs[1] = levelLineNo * 4
                             break   # break current loop (with generator 'n')
 
             levelLineNo += 1 # indicate which line we are
@@ -124,10 +124,10 @@ class movingObject(object):
         if self.dirNext == self.dirCurrent: # in this case, no action is required
             pass
         
-        elif self.coordinateAbs[0] % 3 != 0: # if the object is moving, prevent to change its direction
+        elif self.coordinateAbs[0] % 4 != 0: # if the object is moving, prevent to change its direction
             pass
 
-        elif self.coordinateAbs[1] % 3 != 0: # if the object is moving, prevent to change its direction
+        elif self.coordinateAbs[1] % 4 != 0: # if the object is moving, prevent to change its direction
             pass
 
         else:
@@ -177,14 +177,14 @@ class movingObject(object):
             nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject placed left of this object
 
             if self.coordinateAbs[0] == 0: # at left edge, move to right edge
-                self.coordinateAbs[0] = 27*3 + 2
+                self.coordinateAbs[0] = 27*4 + 3
                 self.dirEdgePassed = True
             
             else:
                 # check the levelObject and allow movingObject to move its current direction
                 if nextObject.name in GameEngine.levelObjectNamesPassable:
                     self.coordinateAbs[0] -= 1 # adjust current coordinate
-                    if self.coordinateAbs[0] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                    if self.coordinateAbs[0] % 4 == 0: # check the object reaches a grid coordinate (coordinateRel)
                         self.coordinateRel[0] -= 1
 
                 elif nextObject.name in GameEngine.levelObjectNamesBlocker:
@@ -194,7 +194,7 @@ class movingObject(object):
         elif self.dirCurrent == "Right":
             nextObject = GameEngine.levelObjects[self.coordinateRel[0]+1][self.coordinateRel[1]] # levelObject placed right of this object
 
-            if self.coordinateAbs[0] == 27*3 + 2:  # at right edge, move to left edge
+            if self.coordinateAbs[0] == 27*4 + 3:  # at right edge, move to left edge
                 self.coordinateAbs[0] = 0
                 self.coordinateRel[0] = 0
                 self.dirEdgePassed = True
@@ -203,7 +203,7 @@ class movingObject(object):
                 # check the levelObject and allow movingObject to move its current direction
                 if nextObject.name in GameEngine.levelObjectNamesPassable:
                     self.coordinateAbs[0] += 1  # adjust current coordinate
-                    if self.coordinateAbs[0] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                    if self.coordinateAbs[0] % 4 == 0: # check the object reaches a grid coordinate (coordinateRel)
                         self.coordinateRel[0] += 1
 
                 elif nextObject.name in GameEngine.levelObjectNamesBlocker:
@@ -214,14 +214,14 @@ class movingObject(object):
             nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]+1] # levelObject placed down of this object
 
             if self.coordinateAbs[1] == 0:  # at top edge, move to bottom edge
-                self.coordinateAbs[1] = 31*3 + 2
+                self.coordinateAbs[1] = 31*4 + 3
                 self.dirEdgePassed = True
 
             else:
                 # check the levelObject and allow movingObject to move its current direction
                 if nextObject.name in GameEngine.levelObjectNamesPassable:
                     self.coordinateAbs[1] += 1  # adjust current coordinate
-                    if self.coordinateAbs[1] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                    if self.coordinateAbs[1] % 4 == 0: # check the object reaches a grid coordinate (coordinateRel)
                         self.coordinateRel[1] += 1
 
                 elif nextObject.name in GameEngine.levelObjectNamesBlocker:
@@ -231,7 +231,7 @@ class movingObject(object):
         elif self.dirCurrent == "Up":
             nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]-1] # levelObject placed up of this object
 
-            if self.coordinateAbs[1] == 31*3 + 2:  # at bottom edge, move to top edge
+            if self.coordinateAbs[1] == 31*4 + 3:  # at bottom edge, move to top edge
                 self.coordinateAbs[1] = 0
                 self.coordinateRel[1] = 0
                 self.dirEdgePassed = True
@@ -240,7 +240,7 @@ class movingObject(object):
                 # check the levelObject and allow movingObject to move its current direction
                 if nextObject.name in GameEngine.levelObjectNamesPassable:
                     self.coordinateAbs[1] -= 1  # adjust current coordinate
-                    if self.coordinateAbs[1] % 3 == 0: # check the object reaches a grid coordinate (coordinateRel)
+                    if self.coordinateAbs[1] % 4 == 0: # check the object reaches a grid coordinate (coordinateRel)
                         self.coordinateRel[1] -= 1
 
                 elif nextObject.name in GameEngine.levelObjectNamesBlocker:

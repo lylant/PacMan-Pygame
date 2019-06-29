@@ -67,6 +67,7 @@ class MainEngine(object):
         self.root.bind('<Up>', self.inputResponseUp)
         self.root.bind('<Down>', self.inputResponseDown)
         self.root.bind('<Escape>', self.inputResponseEsc)
+        self.root.protocol("WM_DELETE_WINDOW", self.inputResponseExit)
 
         # call the next phase of initialization: level selection
         self.__initLevelSelect()
@@ -110,7 +111,7 @@ class MainEngine(object):
 
             self.wGameLabelScore.place(x=10, y=5)
 
-            self.loopTimer = PerpetualTimer(0.08, self.loopFunction)
+            self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
             self.loopTimer.start()
 
 
@@ -153,6 +154,9 @@ class MainEngine(object):
         self.loopTimer.stop() 
         messagebox.showinfo("Game Over!", "You hit the escape key!")
 
+    def inputResponseExit(self):
+        self.loopTimer.stop()
+
 
     def loopFunction(self):
 
@@ -173,13 +177,16 @@ class MainEngine(object):
             else:
                 pass
 
-            if coordAbsP[0] % 3 == 0:
+            if coordAbsP[0] % 4 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL2)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -6, 0)
-            elif coordAbsP[0] % 3 == 1:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -4, 0)
+            elif coordAbsP[0] % 4 == 1:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL3)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -6, 0)
-            elif coordAbsP[0] % 3 == 2:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -4, 0)
+            elif coordAbsP[0] % 4 == 2:
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -4, 0)
+            elif coordAbsP[0] % 4 == 3:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -5, 0)
 
@@ -193,13 +200,16 @@ class MainEngine(object):
             else:
                 pass
 
-            if coordAbsP[0] % 3 == 0:
+            if coordAbsP[0] % 4 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR2)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 6, 0)
-            elif coordAbsP[0] % 3 == 1:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
+            elif coordAbsP[0] % 4 == 1:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR3)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 6, 0)
-            elif coordAbsP[0] % 3 == 2:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
+            elif coordAbsP[0] % 4 == 2:
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
+            elif coordAbsP[0] % 4 == 3:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 5, 0)
 
@@ -213,13 +223,16 @@ class MainEngine(object):
             else:
                 pass
 
-            if coordAbsP[1] % 3 == 0:
+            if coordAbsP[1] % 4 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU2)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -6)
-            elif coordAbsP[1] % 3 == 1:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -4)
+            elif coordAbsP[1] % 4 == 1:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU3)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -6)
-            elif coordAbsP[1] % 3 == 2:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -4)
+            elif coordAbsP[1] % 4 == 2:
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -4)
+            elif coordAbsP[1] % 4 == 3:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -5)
 
@@ -233,33 +246,37 @@ class MainEngine(object):
             else:
                 pass
 
-            if coordAbsP[1] % 3 == 0:
+            if coordAbsP[1] % 4 == 0:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD2)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 6)
-            elif coordAbsP[1] % 3 == 1:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 4)
+            elif coordAbsP[1] % 4 == 1:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD3)
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 6)
-            elif coordAbsP[1] % 3 == 2:
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 4)
+            elif coordAbsP[1] % 4 == 2:
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD2)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 4)
+            elif coordAbsP[1] % 4 == 3:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD1)
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 5)
 
 
         ## encounter features
-        if coordAbsP[0] % 3 == 0 and coordAbsP[1] % 3 == 0:
-            encounter = field.gameEngine.encounterEvent(coordRelP[0], coordRelP[1])
+        # check the object reaches grid coordinate
+        if coordAbsP[0] % 4 == 0 and coordAbsP[1] % 4 == 0:
+            encounter = field.gameEngine.encounterEvent(coordRelP[0], coordRelP[1]) # call encounterEvent function
 
             if encounter == "empty":
                 pass
-            elif encounter == "pellet":                
-                if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:
-                    field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True
-                    self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]])
-                    self.statusScore += 10
-                    self.wGameLabelScore.configure(text=("Score: " + str(self.statusScore)))
-                else:
+            elif encounter == "pellet":
+                if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:  # check the pellet is alive
+                    field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True # destroy the pellet
+                    self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
+                    self.statusScore += 10 # adjust the score
+                    self.wGameLabelScore.configure(text=("Score: " + str(self.statusScore))) # showing on the board
+                else:   # the pellet is already taken
                     pass
 
-        else:
+        else: # pacman is not on grid coordinate
             pass
 
 
