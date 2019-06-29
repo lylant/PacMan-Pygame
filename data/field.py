@@ -51,7 +51,21 @@ class GameEngine(object):
                     self.movingObjectPacman.coordinateAbs[1] = levelLineNo * 4
 
 
-                elif levelLineSplit[i] == "&":  # ghost
+                elif levelLineSplit[i] == "&":  # free ghost
+                    self.levelObjects[i][levelLineNo].name = "empty"
+
+                    # find an inactive ghost and give the starting coordinate
+                    for n in range(4):
+                        if self.movingObjectGhosts[n].isActive == False:
+                            self.movingObjectGhosts[n].isActive = True
+                            self.movingObjectGhosts[n].isCaged = False
+                            self.movingObjectGhosts[n].coordinateRel[0] = i
+                            self.movingObjectGhosts[n].coordinateRel[1] = levelLineNo
+                            self.movingObjectGhosts[n].coordinateAbs[0] = i * 4
+                            self.movingObjectGhosts[n].coordinateAbs[1] = levelLineNo * 4
+                            break   # break current loop (with generator 'n')
+
+                elif levelLineSplit[i] == "%":  # caged ghost
                     self.levelObjects[i][levelLineNo].name = "empty"
 
                     # find an inactive ghost and give the starting coordinate
@@ -63,6 +77,7 @@ class GameEngine(object):
                             self.movingObjectGhosts[n].coordinateAbs[0] = i * 4
                             self.movingObjectGhosts[n].coordinateAbs[1] = levelLineNo * 4
                             break   # break current loop (with generator 'n')
+
 
             levelLineNo += 1 # indicate which line we are
 
@@ -87,9 +102,13 @@ class GameEngine(object):
         self.movingObjectPacman.MoveNext(self)
         self.movingObjectPacman.MoveCurrent(self)
 
-        #for i in range(4):
-        #    self.movingObjectGhosts[i].MoveNext(self)
-        #    self.movingObjectGhosts[i].MoveCurrent(self)
+        for i in range(4):
+            if self.movingObjectGhosts[i].isActive == True:
+                self.movingObjectGhosts[i].MoveNext(self)
+                self.movingObjectGhosts[i].MoveCurrent(self)
+            
+            else:
+                pass
 
 
 
@@ -112,6 +131,7 @@ class movingObject(object):
     def __init__(self, name):
         self.name = name
         self.isActive = False   # check this object is an active ghost (not used for pacman)
+        self.isCaged = True     # check this object is caged (only for ghost)
         self.dirCurrent = "Left" # current direction, if cannot move w/ dirNext, the object will proceed this direction
         self.dirNext = "Left"   # the object will move this direction if it can
         self.dirEdgePassed = False # check the object passed one of field edges

@@ -25,23 +25,34 @@ class MainEngine(object):
 
 
     def __initResource(self):
-        # read the sprite files, this can be reduced with loops, maybe?
-        self.wSpriteWall = PhotoImage(file="resource/sprite_wall.png")
-        self.wSpriteCage = PhotoImage(file="resource/sprite_wall.png")
-        self.wSpritePellet = PhotoImage(file="resource/sprite_pellet.png")
-        self.wSpriteGhost = PhotoImage(file="resource/sprite_ghost_temp.png")
-        self.wSpritePacmanL1 = PhotoImage(file="resource/sprite_pacman_left1.png")
-        self.wSpritePacmanL2 = PhotoImage(file="resource/sprite_pacman_left2.png")
-        self.wSpritePacmanL3 = PhotoImage(file="resource/sprite_pacman_left3.png")
-        self.wSpritePacmanR1 = PhotoImage(file="resource/sprite_pacman_right1.png")
-        self.wSpritePacmanR2 = PhotoImage(file="resource/sprite_pacman_right2.png")
-        self.wSpritePacmanR3 = PhotoImage(file="resource/sprite_pacman_right3.png")
-        self.wSpritePacmanU1 = PhotoImage(file="resource/sprite_pacman_up1.png")
-        self.wSpritePacmanU2 = PhotoImage(file="resource/sprite_pacman_up2.png")
-        self.wSpritePacmanU3 = PhotoImage(file="resource/sprite_pacman_up3.png")
-        self.wSpritePacmanD1 = PhotoImage(file="resource/sprite_pacman_down1.png")
-        self.wSpritePacmanD2 = PhotoImage(file="resource/sprite_pacman_down2.png")
-        self.wSpritePacmanD3 = PhotoImage(file="resource/sprite_pacman_down3.png")
+        ## read the sprite files
+        # all sprites will saved in this dictionary
+        self.wSprites = {
+            'wall': PhotoImage(file="resource/sprite_wall.png"),
+            'cage': PhotoImage(file="resource/sprite_cage.png"),
+            'pellet': PhotoImage(file="resource/sprite_pellet.png"),
+        }
+
+        # bind sprites for moving objects
+        for i in range(4):
+            # pacman: pacman(direction)(index)
+            if i == 3:
+                pass
+            else:
+                self.wSprites['pacmanL{}'.format(i+1)] = PhotoImage(file="resource/sprite_pacman_left{}.png".format(i+1))
+                self.wSprites['pacmanR{}'.format(i+1)] = PhotoImage(file="resource/sprite_pacman_right{}.png".format(i+1))
+                self.wSprites['pacmanU{}'.format(i+1)] = PhotoImage(file="resource/sprite_pacman_up{}.png".format(i+1))
+                self.wSprites['pacmanD{}'.format(i+1)] = PhotoImage(file="resource/sprite_pacman_down{}.png".format(i+1))
+            # ghosts: ghost(index1)(direction)(index2)
+            self.wSprites['ghost{}L1'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_left1.png".format(i+1))
+            self.wSprites['ghost{}L2'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_left2.png".format(i+1))
+            self.wSprites['ghost{}R1'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_right1.png".format(i+1))
+            self.wSprites['ghost{}R2'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_right2.png".format(i+1))
+            self.wSprites['ghost{}U1'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_up1.png".format(i+1))
+            self.wSprites['ghost{}U2'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_up2.png".format(i+1))
+            self.wSprites['ghost{}D1'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_down1.png".format(i+1))
+            self.wSprites['ghost{}D2'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_down2.png".format(i+1))
+
 
         # call the next phase of initialization: generate widgets
         self.__initWidgets()
@@ -103,14 +114,14 @@ class MainEngine(object):
         field.gameEngine.levelGenerate(level)   # generate selected/passed level
 
         if self.isPlaying == False:
+            # removing level selection features
             self.wLvLabel.destroy()
             self.wLvEntry.destroy()
             self.wLvBtn.destroy()
+            # place the canvas and set isPlaying True
             self.wGameCanv.place(x=0, y=30)
             self.isPlaying = True
-
             self.wGameLabelScore.place(x=10, y=5)
-
             self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
             self.loopTimer.start()
 
@@ -122,20 +133,29 @@ class MainEngine(object):
                 if field.gameEngine.levelObjects[i][j].name == "empty":
                     pass
                 elif field.gameEngine.levelObjects[i][j].name == "wall":
-                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSpriteWall)
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'])
                     self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 30+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "cage":
-                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSpriteCage)
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['cage'])
                     self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 30+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "pellet":
-                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSpritePellet)
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['pellet'])
                     self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 30+j*17+8)
 
-        # bind the sprite for pacman
-        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL1)
+        # bind the sprite and give it current coord. for pacman
+        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL1'])
         self.wGameCanv.move(self.wGameCanvMovingObjects[0],
                             field.gameEngine.movingObjectPacman.coordinateRel[0]*17+8,
                             30+field.gameEngine.movingObjectPacman.coordinateRel[1]*17+8)
+        
+        # bind the sprite give them current coord. for ghosts
+        for i in range(4):
+            if field.gameEngine.movingObjectGhosts[i].isActive == True:
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[i+1], image=self.wSprites['ghost{}L1'.format(i+1)])
+                self.wGameCanv.move(self.wGameCanvMovingObjects[i+1],
+                                    field.gameEngine.movingObjectGhosts[i].coordinateRel[0]*17+8,
+                                    30+field.gameEngine.movingObjectGhosts[i].coordinateRel[1]*17+8)
+            
 
 
     def inputResponseLeft(self, event):
@@ -164,6 +184,11 @@ class MainEngine(object):
 
         coordRelP = field.gameEngine.movingObjectPacman.coordinateRel   # pacman relative coordinate
         coordAbsP = field.gameEngine.movingObjectPacman.coordinateAbs   # pacman absolute coordinate
+        coordGhosts = {}
+
+        for i in range(4):
+            coordGhosts['RelG{}'.format(i+1)] = field.gameEngine.movingObjectGhosts[i].coordinateRel    # ghosts relative coordinate
+            coordGhosts['AbsG{}'.format(i+1)] = field.gameEngine.movingObjectGhosts[i].coordinateAbs    # ghosts absolute coordinate
 
 
         ## pacman sprite feature
@@ -178,16 +203,16 @@ class MainEngine(object):
                 pass
 
             if coordAbsP[0] % 4 == 0:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -4, 0)
             elif coordAbsP[0] % 4 == 1:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL3)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL3'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -4, 0)
             elif coordAbsP[0] % 4 == 2:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -4, 0)
             elif coordAbsP[0] % 4 == 3:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanL1)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL1'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], -5, 0)
 
 
@@ -195,22 +220,22 @@ class MainEngine(object):
 
             # check the object passed field edges
             if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -(17*27+17), 0)    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], -(17*27+17), 0)
                 field.gameEngine.movingObjectPacman.dirEdgePassed = False
             else:
                 pass
 
             if coordAbsP[0] % 4 == 0:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
             elif coordAbsP[0] % 4 == 1:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR3)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
             elif coordAbsP[0] % 4 == 2:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
             elif coordAbsP[0] % 4 == 3:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanR1)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR1'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 5, 0)
 
 
@@ -218,22 +243,22 @@ class MainEngine(object):
 
             # check the object passed field edges
             if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 17*27+17)    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 17*27+17)
                 field.gameEngine.movingObjectPacman.dirEdgePassed = False
             else:
                 pass
 
             if coordAbsP[1] % 4 == 0:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanU2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -4)
             elif coordAbsP[1] % 4 == 1:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU3)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanU3'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -4)
             elif coordAbsP[1] % 4 == 2:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanU2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -4)
             elif coordAbsP[1] % 4 == 3:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanU1)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanU1'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -5)
 
 
@@ -241,22 +266,22 @@ class MainEngine(object):
 
             # check the object passed field edges
             if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -(17*27+17))    # notice this will move the sprite 17*27+17 (not 17*27+12) as the sprite will move once again below
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -(17*27+17))
                 field.gameEngine.movingObjectPacman.dirEdgePassed = False
             else:
                 pass
 
             if coordAbsP[1] % 4 == 0:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanD2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 4)
             elif coordAbsP[1] % 4 == 1:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD3)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanD3'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 4)
             elif coordAbsP[1] % 4 == 2:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD2)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanD2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 4)
             elif coordAbsP[1] % 4 == 3:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSpritePacmanD1)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanD1'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 5)
 
 
@@ -278,6 +303,107 @@ class MainEngine(object):
 
         else: # pacman is not on grid coordinate
             pass
+
+
+
+        ## ghosts sprite feature
+        # this will adjust the coordinate of the sprite and make them animated, based on their absoluteCoord.
+        for ghostNo in range(4):
+            if field.gameEngine.movingObjectGhosts[ghostNo].isActive == True:   # only active ghost will be shown
+                if field.gameEngine.movingObjectGhosts[ghostNo].dirCurrent == "Left":
+
+                    # check the object passed field edges
+                    if field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed == True:
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 17*27+17, 0)
+                        field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed = False
+                    else:
+                        pass
+
+                    if coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 0:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -4, 0)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 1:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -4, 0)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 2:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -4, 0)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 3:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -5, 0)
+
+
+                elif field.gameEngine.movingObjectGhosts[ghostNo].dirCurrent == "Right":
+
+                    # check the object passed field edges
+                    if field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed == True:
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -(17*27+17), 0)
+                        field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed = False
+                    else:
+                        pass
+
+                    if coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 0:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 4, 0)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 1:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 4, 0)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 2:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 4, 0)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][0] % 4 == 3:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 5, 0)
+
+
+                elif field.gameEngine.movingObjectGhosts[ghostNo].dirCurrent == "Up":
+
+                    # check the object passed field edges
+                    if field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed == True:
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 17*27+17)
+                        field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed = False
+                    else:
+                        pass
+
+                    if coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 0:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -4)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 1:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -4)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 2:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -4)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 3:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -5)
+
+
+                elif field.gameEngine.movingObjectGhosts[ghostNo].dirCurrent == "Down":
+
+                    # check the object passed field edges
+                    if field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed == True:
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -(17*27+17))
+                        field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed = False
+                    else:
+                        pass
+
+                    if coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 0:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 4)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 1:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 4)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 2:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D1'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 4)
+                    elif coordGhosts['RelG{}'.format(ghostNo+1)][1] % 4 == 3:
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D2'.format(ghostNo+1)])
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 5)
+            
+            else:   # inactive ghost
+                pass
+
 
 
 
