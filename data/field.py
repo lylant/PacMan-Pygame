@@ -100,12 +100,13 @@ class GameEngine(object):
 
 
     def loopFunction(self):
-        self.movingObjectPacman.MoveNextPacman(self)
+        self.movingObjectPacman.MoveNext(self)
         self.movingObjectPacman.MoveCurrent(self)
 
         for i in range(4):
             if self.movingObjectGhosts[i].isActive == True:
-                self.movingObjectGhosts[i].MoveNextPacman(self)
+                self.movingObjectGhosts[i].dirNext = self.movingObjectGhosts[i].MoveNextGhost(self, self.movingObjectGhosts[i].dirCurrent)
+                self.movingObjectGhosts[i].MoveNext(self)
                 self.movingObjectGhosts[i].MoveCurrent(self)
             
             else:
@@ -128,9 +129,6 @@ class levelObject(object):
 
 
 
-## 귀신이 stop이면, 그리고 디렉션 체인지가 가능한 곳에서 랜더마이즈
-
-
 class movingObject(object):
 
     def __init__(self, name):
@@ -139,12 +137,99 @@ class movingObject(object):
         self.isCaged = True     # check this object is caged (only for ghost)
         self.dirCurrent = "Left" # current direction, if cannot move w/ dirNext, the object will proceed this direction
         self.dirNext = "Left"   # the object will move this direction if it can
+        self.dirOpposite = "Right" # opposite direction to current direction, used for ghost movement determine
         self.dirEdgePassed = False # check the object passed one of field edges
         self.coordinateRel = [0, 0]   # Relative Coordinate, check can the object move given direction
         self.coordinateAbs = [0, 0]   # Absolute Coordinate, use for widget(image) and object encounters
 
 
-    def MoveNextPacman(self, GameEngine):
+    def MoveNextGhost(self, GameEngine, dirCur):
+        ## this function will determine ghost's direction
+        # if ghost reaches a grid coordinate, this will check all directions from the ghost's current location
+        # we should get DOF here and will determine how we manage ghost's direction
+        # DOF == 1 ... opposite direction
+        # DOF == 2 ... current direction
+        # DOF == 3 ... random direction (except opposite dir)
+        # DOF == 4 ... random direction (except opposite dir)
+
+        if self.isCaged == True:    # if ghost is caged, prevent the movement
+            pass
+
+        elif self.coordinateAbs[0] % 4 != 0: # if the object is moving, prevent to change its direction
+            pass
+
+        elif self.coordinateAbs[1] % 4 != 0: # if the object is moving, prevent to change its direction
+            pass
+        
+        else:
+            dirIndex = ['Left', 'Right', 'Up', 'Down'] # [0]: Left, [1]: Right, [2]: Up, [3]: Down
+            dirAvailable = []
+            dirDOF = 0
+
+            # find the opposite direction
+            if dirCur == 'Left':
+                self.dirOpposite = 'Right'
+            elif dirCur == 'Right':
+                self.dirOpposite = 'Left'
+            elif dirCur == 'Up':
+                self.dirOpposite = 'Down'
+            elif dirCur == 'Down':
+                self.dirOpposite = 'Up'
+            else: # dirCur == 'Stop'
+                pass
+
+            # checking all directions
+            try:
+                for i in range(4):
+
+                    if i == 0:
+                        nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject on the left
+                    elif i == 1:
+                        nextObject = GameEngine.levelObjects[self.coordinateRel[0]+1][self.coordinateRel[1]] # levelObject on the right
+                    elif i == 2:
+                        nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]-1] # levelObject on the up
+                    elif i == 3:
+                        nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]+1] # levelObject on the down          
+
+                    if nextObject.name in GameEngine.levelObjectNamesPassable:
+                        dirDOF += 1
+                        dirAvailable.append(dirIndex[i])    # append available direction to the list
+                    elif nextObject.name in GameEngine.levelObjectNamesBlocker:
+                        pass
+
+            except IndexError:  # in case of edge teleport
+                dirDOF = 2
+                dirAvailable.append(dirCur)
+            
+            
+            try:
+                if dirDOF == 1: # to opposite direction, in this case, dirAvailable only have one item (which is opposite dir)
+                    return dirAvailable[0]  # this might not use dirOpp as if the object is stopped, dirOpp is not binded properly
+                
+                elif dirDOF == 2: # advance toward current direction
+                    if dirCur in dirAvailable:  # straight
+                        return dirCur
+                    else:   # curved
+                        dirAvailable.remove(self.dirOpposite)
+                        return dirAvailable[0]
+
+
+                elif dirDOF == 3 or dirDOF == 4:
+                    if dirCur == 'Stop':
+                        randNo = randint(0, dirDOF-1)   # generate a random number, selection of degree of freedom
+                        return dirAvailable[randNo]
+                    else:
+                        dirAvailable.remove(self.dirOpposite) # except the opposite direction
+                        randNo = randint(0, dirDOF-2)   # generate a random number, selection of degree of freedom (except the opposite dir)
+                        return dirAvailable[randNo]
+            
+
+            except ValueError:  # prevent the first loop error (default values would cause ValueError)
+                pass
+
+
+
+    def MoveNext(self, GameEngine):
         ## this function will determine pacman can move with given direction or not
 
         if self.dirNext == self.dirCurrent: # in this case, no action is required
@@ -215,62 +300,6 @@ class movingObject(object):
                         self.dirCurrent = "Up"
                     elif nextObject.name in GameEngine.levelObjectNamesBlocker:
                         pass
-
-
-
-    def MoveNextGhost(self, GameEngine):
-        ## this function will determine ghost's moving direction
-
-        if self.isCaged == True:    # if ghost is caged, prevent the movement
-            pass
-
-        elif self.coordinateAbs[0] % 4 != 0: # if the object is moving, prevent to change its direction
-            pass
-
-        elif self.coordinateAbs[1] % 4 != 0: # if the object is moving, prevent to change its direction
-            pass
-
-        else:
-            randNo = randint(0, 3) # generate a random number 0-3
-            
-            # determine ghost's direction
-            while True:
-
-                if randNo % 4 == 0: # check left
-                    nextObject = GameEngine.levelObjects[self.coordinateRel[0]-1][self.coordinateRel[1]] # levelObject placed left of this object
-                    if nextObject.name in GameEngine.levelObjectNamesPassable:
-                        self.dirCurrent = "Left" # set the direction
-                        break # escape the loop
-                    elif nextObject.name in GameEngine.levelObjectNamesBlocker:
-                        pass # check the next direction (using randNo as generator)
-
-                elif randNo % 4 == 1: # check right
-                    nextObject = GameEngine.levelObjects[self.coordinateRel[0]+1][self.coordinateRel[1]]
-                    if nextObject.name in GameEngine.levelObjectNamesPassable:
-                        self.dirCurrent = "Right"
-                        break
-                    elif nextObject.name in GameEngine.levelObjectNamesBlocker:
-                        pass
-                
-                elif randNo % 4 == 2: # check down
-                    nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]+1]
-                    if nextObject.name in GameEngine.levelObjectNamesPassable:
-                        self.dirCurrent = "Down"
-                        break
-                    elif nextObject.name in GameEngine.levelObjectNamesBlocker:
-                        pass
-
-                elif randNo % 4 == 3: # check up
-                    nextObject = GameEngine.levelObjects[self.coordinateRel[0]][self.coordinateRel[1]-1]
-                    if nextObject.name in GameEngine.levelObjectNamesPassable:
-                        self.dirCurrent = "Up"
-                        break
-                    elif nextObject.name in GameEngine.levelObjectNamesBlocker:
-                        pass
-                
-                randNo += 1
-            
-            print("cRel:", self.coordinateRel[0], self.coordinateRel[1], "cAbs:", self.coordinateAbs[0], self.coordinateAbs[1], "dir:", self.dirCurrent)                
 
         
     
@@ -356,7 +385,7 @@ class movingObject(object):
             pass
 
         if self.isActive == True and self.isCaged == False:
-            print("cRel:", self.coordinateRel[0], self.coordinateRel[1], "cAbs:", self.coordinateAbs[0], self.coordinateAbs[1], "dir:", self.dirCurrent)
-
+            #print("cRel:", self.coordinateRel[0], self.coordinateRel[1], "cAbs:", self.coordinateAbs[0], self.coordinateAbs[1], "dir:", self.dirCurrent)
+            pass
 
 gameEngine = GameEngine()
