@@ -1,6 +1,5 @@
 from tkinter import Tk, Label, Entry, Button, PhotoImage, messagebox, END, Canvas
 from threading import Timer
-from time import sleep
 from data import field
 import os
 
@@ -16,11 +15,13 @@ class MainEngine(object):
         self.root.resizable(0, 0)
 
         # initialize some engine variables
-        self.currentLv = 1   # default: level 1
-        self.isPlaying = False
-        self.statusStartingTimer = 0
-        self.statusScore = 0
-        self.statusLife = 2
+        self.currentLv = 1              # default: level 1
+        self.isLevelGenerated = False   # check the level (map) is generated or not
+        self.isPlaying = False          # check the game is actually started (moving) or not
+        self.statusStartingTimer = 0    # countdown timer for 'get ready' feature
+        self.statusDeadTimer = 0        # countdown timer for dead event
+        self.statusScore = 0            # score
+        self.statusLife = 2             # life
 
         # call the next phase of initialization: loading resources
         self.__initResource()
@@ -56,6 +57,8 @@ class MainEngine(object):
             self.wSprites['ghost{}D1'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_down1.png".format(i+1))
             self.wSprites['ghost{}D2'.format(i+1)] = PhotoImage(file="resource/sprite_ghost_{}_down2.png".format(i+1))
 
+        for i in range(11):
+            self.wSprites['pacmanDeath{}'.format(i+1)] = PhotoImage(file="resource/sprite_pacman_death{}.png".format(i+1))
 
         # call the next phase of initialization: generate widgets
         self.__initWidgets()
@@ -82,6 +85,7 @@ class MainEngine(object):
         self.root.bind('<Up>', self.inputResponseUp)
         self.root.bind('<Down>', self.inputResponseDown)
         self.root.bind('<Escape>', self.inputResponseEsc)
+        self.root.bind('<Return>', self.inputResponseReturn)
         self.root.protocol("WM_DELETE_WINDOW", self.inputResponseExit)
 
         # call the next phase of initialization: level selection
@@ -101,7 +105,7 @@ class MainEngine(object):
 
     def lvSelect(self):
         try:
-            self.__initLevel(self.wLvEntry.get())
+            self.__initLevelOnce(self.wLvEntry.get())
         
         except FileNotFoundError:
             self.wLvEntry.delete(0, END)  # clear the text box
@@ -113,20 +117,29 @@ class MainEngine(object):
 ## 죽고나면 initLevel 기능과 같은 것을 다시 불러오되, isDestroyed를 체크해서 스프라이트를 불러올지 판단한다
 
 
+    def __initLevelOnce(self, level):
+        ## this function will be called only once
+
+        # removing level selection features
+        self.wLvLabel.destroy()
+        self.wLvEntry.destroy()
+        self.wLvBtn.destroy()
+        # place the canvas and set isPlaying True
+        self.wGameCanv.place(x=0, y=30)
+        self.wGameLabelScore.place(x=10, y=5)
+        self.wGameLabelLife.place(x=420, y=5)
+
+        self.__initLevel(level)
+
+
     def __initLevel(self, level):
 
-        field.gameEngine.levelGenerate(level)   # generate selected/passed level
+        self.currentLv = level
 
-        if self.isPlaying == False:
-            # removing level selection features
-            self.wLvLabel.destroy()
-            self.wLvEntry.destroy()
-            self.wLvBtn.destroy()
-            # place the canvas and set isPlaying True
-            self.wGameCanv.place(x=0, y=30)
-            self.isPlaying = True
-            self.wGameLabelScore.place(x=10, y=5)
-
+        if self.isLevelGenerated == False:
+            field.gameEngine.levelGenerate(level)   # generate selected/passed level
+        else:
+            pass
 
         # check the name of the object and bind the sprite, adjust their coordinate
         for j in range(32):
@@ -158,6 +171,8 @@ class MainEngine(object):
                                     field.gameEngine.movingObjectGhosts[i].coordinateRel[0]*17+8,
                                     30+field.gameEngine.movingObjectGhosts[i].coordinateRel[1]*17+8)
         
+        # advance to next phase: get ready!
+        self.isLevelGenerated = True
         self.readyTimer = PerpetualTimer(0.70, self.__initLevelStarting)
         self.readyTimer.start()
             
@@ -179,6 +194,13 @@ class MainEngine(object):
         self.loopTimer.stop() 
         messagebox.showinfo("Game Over!", "You hit the escape key!")
 
+    def inputResponseReturn(self, event):
+        # skip feature
+        if self.isLevelGenerated == True and self.isPlaying == False:
+            self.gameStartingTrigger()
+        else:
+            pass
+
     def inputResponseExit(self):
         self.loopTimer.stop()
 
@@ -191,24 +213,26 @@ class MainEngine(object):
         # bind the sprite for the widget
         self.wGameCanv.itemconfig(self.wGameCanvLabelGetReady, image=self.wSprites['getready'])
 
-        # blinking function
-        if self.statusStartingTimer % 2 == 1:
-            self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='normal')
-        else:
-            self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
+        if self.statusStartingTimer < 8:
+            # blinking function
+            if self.statusStartingTimer % 2 == 1:
+                self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='normal')
+            else:
+                self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
 
-        # after 8 loop, the main game will be started with loopFunction
-        if self.statusStartingTimer == 8:
-            self.readyTimer.stop()
-            self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
-            self.statusStartingTimer = 0
-
-            self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
-            self.loopTimer.start()
+        else:   # after 8 loop, the main game will be started with loopFunction
+            self.gameStartingTrigger()
         
-        else:
-            pass
 
+    def gameStartingTrigger(self):
+        ## stop to print out 'get ready' and start the game
+        self.readyTimer.stop()
+        self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
+        self.statusStartingTimer = 0
+        self.isPlaying = True
+
+        self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
+        self.loopTimer.start()
 
 
     def loopFunction(self):
@@ -323,39 +347,6 @@ class MainEngine(object):
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 5)
 
 
-    def encounterEvent(self, coordRelP, coordAbsP):
-        ## encounter features
-
-        encounterMov = field.gameEngine.encounterMoving(coordAbsP[0], coordAbsP[1]) # call encounterEvent for moving objects
-
-        if encounterMov == 'dead':
-            self.loopTimer.stop() 
-            messagebox.showinfo("Game Over!", "You encountered a ghost!")
-
-        else:
-            pass
-
-        # check the object reaches grid coordinate
-        if coordAbsP[0] % 4 == 0 and coordAbsP[1] % 4 == 0:
-            encounterFix = field.gameEngine.encounterFixed(coordRelP[0], coordRelP[1]) # call encounterEvent function
-
-            if encounterFix == "empty":
-                pass
-            elif encounterFix == "pellet":
-                if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:  # check the pellet is alive
-                    field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True # destroy the pellet
-                    self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
-                    self.statusScore += 10 # adjust the score
-                    self.wGameLabelScore.configure(text=("Score: " + str(self.statusScore))) # showing on the board
-                else:   # the pellet is already taken
-                    pass
-
-        else: # pacman is not on grid coordinate
-            pass
-
-        
-
-
     def spriteGhost(self, coordGhosts):
         ## ghosts sprite feature
         # this will adjust the coordinate of the sprite and make them animated, based on their absoluteCoord.
@@ -454,6 +445,69 @@ class MainEngine(object):
             
             else:   # inactive ghost
                 pass
+
+
+    def encounterEvent(self, coordRelP, coordAbsP):
+        ## encounter features
+
+        encounterMov = field.gameEngine.encounterMoving(coordAbsP[0], coordAbsP[1]) # call encounterEvent for moving objects
+
+        if encounterMov == 'dead':
+            self.encounterEventDead()
+
+        else:
+            pass
+
+        # check the object reaches grid coordinate
+        if coordAbsP[0] % 4 == 0 and coordAbsP[1] % 4 == 0:
+            encounterFix = field.gameEngine.encounterFixed(coordRelP[0], coordRelP[1]) # call encounterEvent function
+
+            if encounterFix == "empty":
+                pass
+            elif encounterFix == "pellet":
+                if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:  # check the pellet is alive
+                    field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True # destroy the pellet
+                    self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
+                    self.statusScore += 10 # adjust the score
+                    self.wGameLabelScore.configure(text=("Score: " + str(self.statusScore))) # showing on the board
+                else:   # the pellet is already taken
+                    pass
+
+        else: # pacman is not on grid coordinate
+            pass
+
+        
+    def encounterEventDead(self):
+
+        self.statusLife -= 1    # subtract remaining life
+        self.wGameLabelLife.configure(text=("Life: " + str(self.statusLife))) # showing on the board
+
+        # pause the game
+        self.isPlaying = False
+        self.loopTimer.stop()
+
+        for i in range(4):  # hide the ghost sprite
+            self.wGameCanv.itemconfigure(self.wGameCanvMovingObjects[i+1], state='hidden')
+
+        # call the death sprite loop
+        self.deathTimer = PerpetualTimer(0.12, self.encounterEventDeadLoop)
+        self.deathTimer.start()
+
+
+    def encounterEventDeadLoop(self):
+
+        self.statusDeadTimer += 1   # countdown timer for this function
+
+        if self.statusDeadTimer <= 11:
+            self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0],
+                                        image=self.wSprites['pacmanDeath{}'.format(self.statusDeadTimer)])  # animate the death sprite
+        else:
+            self.encounterEventDeadRestart()
+
+    
+    def encounterEventDeadRestart(self):
+        ## stop the death event and restart the game
+        self.deathTimer.stop()
 
 
 
