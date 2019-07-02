@@ -201,16 +201,20 @@ class MainEngine(object):
 
         field.gameEngine.loopFunction()
 
-        coordRelP = field.gameEngine.movingObjectPacman.coordinateRel   # pacman relative coordinate
-        coordAbsP = field.gameEngine.movingObjectPacman.coordinateAbs   # pacman absolute coordinate
         coordGhosts = {}
 
         for i in range(4):
             coordGhosts['RelG{}'.format(i+1)] = field.gameEngine.movingObjectGhosts[i].coordinateRel    # ghosts relative coordinate
             coordGhosts['AbsG{}'.format(i+1)] = field.gameEngine.movingObjectGhosts[i].coordinateAbs    # ghosts absolute coordinate
 
+        self.spritePacman(field.gameEngine.movingObjectPacman.coordinateRel, field.gameEngine.movingObjectPacman.coordinateAbs)
+        self.spriteGhost(coordGhosts)
+        self.encounterEvent(field.gameEngine.movingObjectPacman.coordinateRel, field.gameEngine.movingObjectPacman.coordinateAbs)
 
 
+
+
+    def spritePacman(self, coordRelP, coordAbsP):
         ## pacman sprite feature
         # this will adjust the coordinate of the sprite and make them animated, based on their absoluteCoord.
         if field.gameEngine.movingObjectPacman.dirCurrent == "Left":
@@ -305,14 +309,25 @@ class MainEngine(object):
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 5)
 
 
+    def encounterEvent(self, coordRelP, coordAbsP):
         ## encounter features
+
+        encounterMov = field.gameEngine.encounterMoving(coordAbsP[0], coordAbsP[1]) # call encounterEvent for moving objects
+
+        if encounterMov == 'dead':
+            self.loopTimer.stop() 
+            messagebox.showinfo("Game Over!", "You encountered a ghost!")
+
+        else:
+            pass
+
         # check the object reaches grid coordinate
         if coordAbsP[0] % 4 == 0 and coordAbsP[1] % 4 == 0:
-            encounter = field.gameEngine.encounterEvent(coordRelP[0], coordRelP[1]) # call encounterEvent function
+            encounterFix = field.gameEngine.encounterFixed(coordRelP[0], coordRelP[1]) # call encounterEvent function
 
-            if encounter == "empty":
+            if encounterFix == "empty":
                 pass
-            elif encounter == "pellet":
+            elif encounterFix == "pellet":
                 if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:  # check the pellet is alive
                     field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True # destroy the pellet
                     self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
@@ -324,8 +339,10 @@ class MainEngine(object):
         else: # pacman is not on grid coordinate
             pass
 
+        
 
 
+    def spriteGhost(self, coordGhosts):
         ## ghosts sprite feature
         # this will adjust the coordinate of the sprite and make them animated, based on their absoluteCoord.
         for ghostNo in range(4):

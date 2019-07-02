@@ -85,7 +85,7 @@ class GameEngine(object):
         levelFile.close()
 
 
-    def encounterEvent(self, x, y):
+    def encounterFixed(self, x, y):     # rel coord.
         if self.levelObjects[x][y].name == "empty":
             result = "empty"
 
@@ -94,6 +94,26 @@ class GameEngine(object):
 
         elif self.levelObjects[x][y].name == "powerup":
             result = "powerup"
+        
+        return result
+
+    
+    def encounterMoving(self, x, y):    # abs coord.
+
+        result = "alive"    # default return
+
+        for i in range(4):  # check if pacman encountered ghost
+            m = self.movingObjectGhosts[i].coordinateAbs[0] # ghost's x coord.
+            n = self.movingObjectGhosts[i].coordinateAbs[1] # ghost's y coord.
+            if self.movingObjectGhosts[i].isActive == True and self.movingObjectGhosts[i].isCaged == False:
+
+                if (m-4 < x < m+4) and (n-4 < y < n+4):   # check x coord. and y coord. parallelly
+                    result = "dead"
+                else:
+                    pass
+            
+            else:
+                pass
         
         return result
 
@@ -201,7 +221,7 @@ class movingObject(object):
                 dirDOF = 2
                 dirAvailable.append(dirCur)
             
-            
+
             try:
                 if dirDOF == 1: # to opposite direction, in this case, dirAvailable only have one item (which is opposite dir)
                     return dirAvailable[0]  # this might not use dirOpp as if the object is stopped, dirOpp is not binded properly
