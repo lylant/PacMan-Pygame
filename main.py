@@ -18,6 +18,7 @@ class MainEngine(object):
         # initialize some engine variables
         self.currentLv = 1   # default: level 1
         self.isPlaying = False
+        self.statusStartingTimer = 0
         self.statusScore = 0
         self.statusLife = 2
 
@@ -29,6 +30,7 @@ class MainEngine(object):
         ## read the sprite files
         # all sprites will saved in this dictionary
         self.wSprites = {
+            'getready': PhotoImage(file="resource/sprite_get_ready.png"),
             'wall': PhotoImage(file="resource/sprite_wall.png"),
             'cage': PhotoImage(file="resource/sprite_cage.png"),
             'pellet': PhotoImage(file="resource/sprite_pellet.png")
@@ -69,6 +71,7 @@ class MainEngine(object):
         self.wGameLabelScore = Label(self.root, text=("Score: " + str(self.statusScore)))
         self.wGameLabelLife = Label(self.root, text=("Life: " + str(self.statusLife)))
         self.wGameCanv = Canvas(width=480, height=600)
+        self.wGameCanvLabelGetReady = self.wGameCanv.create_image(240,328,image=None)
         self.wGameCanvObjects = [[self.wGameCanv.create_image(0,0,image=None) for j in range(32)] for i in range(28)]
         self.wGameCanv.config(background="black")
         self.wGameCanvMovingObjects = [self.wGameCanv.create_image(0,0,image=None) for n in range(5)] # 0: pacman, 1-4: ghosts
@@ -154,40 +157,23 @@ class MainEngine(object):
                 self.wGameCanv.move(self.wGameCanvMovingObjects[i+1],
                                     field.gameEngine.movingObjectGhosts[i].coordinateRel[0]*17+8,
                                     30+field.gameEngine.movingObjectGhosts[i].coordinateRel[1]*17+8)
-
-        self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
-        self.loopTimer.start()
+        
+        self.readyTimer = PerpetualTimer(0.70, self.__initLevelStarting)
+        self.readyTimer.start()
             
 
 
     def inputResponseLeft(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Left"
-        #field.gameEngine.movingObjectGhosts[0].dirNext = "Left"
-        #field.gameEngine.movingObjectGhosts[1].dirNext = "Left"
-        #field.gameEngine.movingObjectGhosts[2].dirNext = "Left"
-        #field.gameEngine.movingObjectGhosts[3].dirNext = "Left"
 
     def inputResponseRight(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Right"
-        #field.gameEngine.movingObjectGhosts[0].dirNext = "Right"
-        #field.gameEngine.movingObjectGhosts[1].dirNext = "Right"
-        #field.gameEngine.movingObjectGhosts[2].dirNext = "Right"
-        #field.gameEngine.movingObjectGhosts[3].dirNext = "Right"
 
     def inputResponseUp(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Up"
-        #field.gameEngine.movingObjectGhosts[0].dirNext = "Up"
-        #field.gameEngine.movingObjectGhosts[1].dirNext = "Up"
-        #field.gameEngine.movingObjectGhosts[2].dirNext = "Up"
-        #field.gameEngine.movingObjectGhosts[3].dirNext = "Up"
     
     def inputResponseDown(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Down"
-        #field.gameEngine.movingObjectGhosts[0].dirNext = "Down"
-        #field.gameEngine.movingObjectGhosts[1].dirNext = "Down"
-        #field.gameEngine.movingObjectGhosts[2].dirNext = "Down"
-        #field.gameEngine.movingObjectGhosts[3].dirNext = "Down"
-
 
     def inputResponseEsc(self, event):
         self.loopTimer.stop() 
@@ -195,6 +181,34 @@ class MainEngine(object):
 
     def inputResponseExit(self):
         self.loopTimer.stop()
+
+
+
+
+    def __initLevelStarting(self):
+        self.statusStartingTimer += 1   # countdown timer for this function
+
+        # bind the sprite for the widget
+        self.wGameCanv.itemconfig(self.wGameCanvLabelGetReady, image=self.wSprites['getready'])
+
+        # blinking function
+        if self.statusStartingTimer % 2 == 1:
+            self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='normal')
+        else:
+            self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
+
+        # after 8 loop, the main game will be started with loopFunction
+        if self.statusStartingTimer == 8:
+            self.readyTimer.stop()
+            self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
+            self.statusStartingTimer = 0
+
+            self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
+            self.loopTimer.start()
+        
+        else:
+            pass
+
 
 
     def loopFunction(self):
@@ -253,7 +267,7 @@ class MainEngine(object):
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR2'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
             elif coordAbsP[0] % 4 == 1:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR2'])
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR3'])
                 self.wGameCanv.move(self.wGameCanvMovingObjects[0], 4, 0)
             elif coordAbsP[0] % 4 == 2:
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanR2'])
