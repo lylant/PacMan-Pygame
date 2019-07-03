@@ -32,6 +32,7 @@ class MainEngine(object):
         # all sprites will saved in this dictionary
         self.wSprites = {
             'getready': PhotoImage(file="resource/sprite_get_ready.png"),
+            'gameover': PhotoImage(file="resource/sprite_game_over.png"),
             'wall': PhotoImage(file="resource/sprite_wall.png"),
             'cage': PhotoImage(file="resource/sprite_cage.png"),
             'pellet': PhotoImage(file="resource/sprite_pellet.png")
@@ -74,7 +75,8 @@ class MainEngine(object):
         self.wGameLabelScore = Label(self.root, text=("Score: " + str(self.statusScore)))
         self.wGameLabelLife = Label(self.root, text=("Life: " + str(self.statusLife)))
         self.wGameCanv = Canvas(width=480, height=600)
-        self.wGameCanvLabelGetReady = self.wGameCanv.create_image(240,328,image=None)
+        self.wGameCanvLabelGetReady = self.wGameCanv.create_image(240,326,image=None)
+        self.wGameCanvLabelGameOver = self.wGameCanv.create_image(240,327,image=None)  
         self.wGameCanvObjects = [[self.wGameCanv.create_image(0,0,image=None) for j in range(32)] for i in range(28)]
         self.wGameCanv.config(background="black")
         self.wGameCanvMovingObjects = [self.wGameCanv.create_image(0,0,image=None) for n in range(5)] # 0: pacman, 1-4: ghosts
@@ -102,7 +104,6 @@ class MainEngine(object):
         self.root.mainloop()
 
 
-
     def lvSelect(self):
         try:
             self.__initLevelOnce(self.wLvEntry.get())
@@ -112,13 +113,10 @@ class MainEngine(object):
             messagebox.showinfo("Error!", "Enter a valid level.")
 
 
-
-
-## 죽고나면 initLevel 기능과 같은 것을 다시 불러오되, isDestroyed를 체크해서 스프라이트를 불러올지 판단한다
-
-
     def __initLevelOnce(self, level):
         ## this function will be called only once
+
+        self.__initLevel(level)
 
         # removing level selection features
         self.wLvLabel.destroy()
@@ -129,17 +127,13 @@ class MainEngine(object):
         self.wGameLabelScore.place(x=10, y=5)
         self.wGameLabelLife.place(x=420, y=5)
 
-        self.__initLevel(level)
+
 
 
     def __initLevel(self, level):
 
         self.currentLv = level
-
-        if self.isLevelGenerated == False:
-            field.gameEngine.levelGenerate(level)   # generate selected/passed level
-        else:
-            pass
+        field.gameEngine.levelGenerate(level)   # generate selected/passed level
 
         # check the name of the object and bind the sprite, adjust their coordinate
         for j in range(32):
@@ -149,27 +143,31 @@ class MainEngine(object):
                     pass
                 elif field.gameEngine.levelObjects[i][j].name == "wall":
                     self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'])
-                    self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 30+j*17+8)
+                    self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "cage":
                     self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['cage'])
-                    self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 30+j*17+8)
+                    self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "pellet":
-                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['pellet'])
-                    self.wGameCanv.move(self.wGameCanvObjects[i][j], i*17+8, 30+j*17+8)
+                    if field.gameEngine.levelObjects[i][j].isDestroyed == False:
+                        self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['pellet'])
+                        self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
+                    else:
+                        pass
 
         # bind the sprite and give it current coord. for pacman
-        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL1'])
-        self.wGameCanv.move(self.wGameCanvMovingObjects[0],
-                            field.gameEngine.movingObjectPacman.coordinateRel[0]*17+8,
+        self.wGameCanv.coords(self.wGameCanvMovingObjects[0], 
+                            3+field.gameEngine.movingObjectPacman.coordinateRel[0]*17+8,
                             30+field.gameEngine.movingObjectPacman.coordinateRel[1]*17+8)
-        
+        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0], image=self.wSprites['pacmanL1'], state='normal')
+
         # bind the sprite give them current coord. for ghosts
         for i in range(4):
             if field.gameEngine.movingObjectGhosts[i].isActive == True:
-                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[i+1], image=self.wSprites['ghost{}L1'.format(i+1)])
-                self.wGameCanv.move(self.wGameCanvMovingObjects[i+1],
-                                    field.gameEngine.movingObjectGhosts[i].coordinateRel[0]*17+8,
+                self.wGameCanv.coords(self.wGameCanvMovingObjects[i+1],
+                                    3+field.gameEngine.movingObjectGhosts[i].coordinateRel[0]*17+8,
                                     30+field.gameEngine.movingObjectGhosts[i].coordinateRel[1]*17+8)
+                self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[i+1], image=self.wSprites['ghost{}L1'.format(i+1)], state='normal')
+
         
         # advance to next phase: get ready!
         self.isLevelGenerated = True
@@ -230,6 +228,7 @@ class MainEngine(object):
         self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
         self.statusStartingTimer = 0
         self.isPlaying = True
+        field.gameEngine.movingObjectPacman.dirNext = "Left"
 
         self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
         self.loopTimer.start()
@@ -365,10 +364,10 @@ class MainEngine(object):
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -4, 0)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][0] % 4 == 1:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L2'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -4, 0)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][0] % 4 == 2:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L1'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L2'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], -4, 0)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][0] % 4 == 3:
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}L2'.format(ghostNo+1)])
@@ -388,10 +387,10 @@ class MainEngine(object):
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 4, 0)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][0] % 4 == 1:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R2'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 4, 0)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][0] % 4 == 2:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R1'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R2'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 4, 0)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][0] % 4 == 3:
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}R2'.format(ghostNo+1)])
@@ -411,10 +410,10 @@ class MainEngine(object):
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -4)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][1] % 4 == 1:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U2'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -4)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][1] % 4 == 2:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U1'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U2'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -4)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][1] % 4 == 3:
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}U2'.format(ghostNo+1)])
@@ -434,10 +433,10 @@ class MainEngine(object):
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 4)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][1] % 4 == 1:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D2'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D1'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 4)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][1] % 4 == 2:
-                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D1'.format(ghostNo+1)])
+                        self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D2'.format(ghostNo+1)])
                         self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 4)
                     elif coordGhosts['AbsG{}'.format(ghostNo+1)][1] % 4 == 3:
                         self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[ghostNo+1], image=self.wSprites['ghost{}D2'.format(ghostNo+1)])
@@ -467,7 +466,8 @@ class MainEngine(object):
             elif encounterFix == "pellet":
                 if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:  # check the pellet is alive
                     field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True # destroy the pellet
-                    self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
+                    self.wGameCanv.itemconfigure(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]], state='hidden') # remove from the canvas
+                    #self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
                     self.statusScore += 10 # adjust the score
                     self.wGameLabelScore.configure(text=("Score: " + str(self.statusScore))) # showing on the board
                 else:   # the pellet is already taken
@@ -480,17 +480,17 @@ class MainEngine(object):
     def encounterEventDead(self):
 
         self.statusLife -= 1    # subtract remaining life
-        self.wGameLabelLife.configure(text=("Life: " + str(self.statusLife))) # showing on the board
+
+        if self.statusLife >= 0:
+            self.wGameLabelLife.configure(text=("Life: " + str(self.statusLife))) # showing on the board
+        else:   # prevent showing minus life (will be game over anyway)
+            pass
 
         # pause the game
-        self.isPlaying = False
         self.loopTimer.stop()
 
-        for i in range(4):  # hide the ghost sprite
-            self.wGameCanv.itemconfigure(self.wGameCanvMovingObjects[i+1], state='hidden')
-
-        # call the death sprite loop
-        self.deathTimer = PerpetualTimer(0.12, self.encounterEventDeadLoop)
+        # call the death loop
+        self.deathTimer = PerpetualTimer(0.11, self.encounterEventDeadLoop)
         self.deathTimer.start()
 
 
@@ -498,17 +498,59 @@ class MainEngine(object):
 
         self.statusDeadTimer += 1   # countdown timer for this function
 
-        if self.statusDeadTimer <= 11:
+        if self.statusDeadTimer <= 5:   # waiting for a while
+            pass
+
+        elif self.statusDeadTimer == 6:
+            for i in range(4):  # hide the ghost sprite and initialize their status
+                self.wGameCanv.itemconfigure(self.wGameCanvMovingObjects[i+1], state='hidden')
+                field.gameEngine.movingObjectGhosts[i].isActive = False
+                field.gameEngine.movingObjectGhosts[i].isCaged = True
+        
+        elif 6 < self.statusDeadTimer <= 17:    # animate the death sprite
             self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[0],
-                                        image=self.wSprites['pacmanDeath{}'.format(self.statusDeadTimer)])  # animate the death sprite
+                                        image=self.wSprites['pacmanDeath{}'.format(self.statusDeadTimer-6)])
+
+        elif self.statusDeadTimer == 18:    # blink!
+            self.wGameCanv.itemconfigure(self.wGameCanvMovingObjects[0], state='hidden')
+
+        elif 18 < self.statusDeadTimer <= 22:   # waiting for a while
+            pass
+
         else:
             self.encounterEventDeadRestart()
 
     
     def encounterEventDeadRestart(self):
         ## stop the death event and restart the game
-        self.deathTimer.stop()
+        if self.statusLife >= 0:
+            self.statusDeadTimer = 0
+            self.deathTimer.stop()
+            self.isPlaying = False
+            self.__initLevel(self.currentLv)
+        
+        else:   # game over
+            self.statusDeadTimer = 0
+            self.deathTimer.stop()
+            self.gameOverTimer = PerpetualTimer(0.70, self.encounterEventDeadGameOver)
+            self.gameOverTimer.start()
 
+    
+
+    def encounterEventDeadGameOver(self):
+        self.statusDeadTimer += 1
+        self.wGameCanv.itemconfig(self.wGameCanvLabelGameOver, image=self.wSprites['gameover'])
+
+        if self.statusDeadTimer < 8:
+            # blinking function
+            if self.statusDeadTimer % 2 == 1:
+                self.wGameCanv.itemconfigure(self.wGameCanvLabelGameOver, state='normal')
+            else:
+                self.wGameCanv.itemconfigure(self.wGameCanvLabelGameOver, state='hidden')
+
+        else:   # after 8 loop, the game is completely finished
+            self.gameOverTimer.stop()
+        
 
 
 

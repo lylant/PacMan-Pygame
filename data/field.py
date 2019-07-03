@@ -107,7 +107,7 @@ class GameEngine(object):
             n = self.movingObjectGhosts[i].coordinateAbs[1] # ghost's y coord.
 
             if self.movingObjectGhosts[i].isActive == True and self.movingObjectGhosts[i].isCaged == False:
-                if (m-4 < x < m+4) and (n-4 < y < n+4):   # check x coord. and y coord. parallelly
+                if (m-3 < x < m+3) and (n-3 < y < n+3):   # check x coord. and y coord. parallelly, this is little bit benign determine (we can use +-4)
                     result = "dead"
                 else:
                     pass
@@ -152,14 +152,14 @@ class movingObject(object):
 
     def __init__(self, name):
         self.name = name
-        self.isActive = False   # check this object is an active ghost (not used for pacman)
-        self.isCaged = True     # check this object is caged (only for ghost)
-        self.dirCurrent = "Left" # current direction, if cannot move w/ dirNext, the object will proceed this direction
-        self.dirNext = "Left"   # the object will move this direction if it can
-        self.dirOpposite = "Right" # opposite direction to current direction, used for ghost movement determine
-        self.dirEdgePassed = False # check the object passed one of field edges
-        self.coordinateRel = [0, 0]   # Relative Coordinate, check can the object move given direction
-        self.coordinateAbs = [0, 0]   # Absolute Coordinate, use for widget(image) and object encounters
+        self.isActive = False       # check this object is an active ghost (not used for pacman)
+        self.isCaged = True         # check this object is caged (only for ghost)
+        self.dirCurrent = "Left"    # current direction, if cannot move w/ dirNext, the object will proceed this direction
+        self.dirNext = "Left"       # the object will move this direction if it can
+        self.dirOpposite = "Right"  # opposite direction to current direction, used for ghost movement determine
+        self.dirEdgePassed = False  # check the object passed one of field edges
+        self.coordinateRel = [0, 0] # Relative Coordinate, check can the object move given direction
+        self.coordinateAbs = [0, 0] # Absolute Coordinate, use for widget(image) and object encounters
 
 
     def MoveNextGhost(self, GameEngine, dirCur):
@@ -228,6 +228,8 @@ class movingObject(object):
                 elif dirDOF == 2: # advance toward current direction
                     if dirCur in dirAvailable:  # straight
                         return dirCur
+                    elif dirCur == 'Stop':  # somehow this object stopped at straight way
+                        return dirAvailable[0]
                     else:   # curved
                         dirAvailable.remove(self.dirOpposite)
                         return dirAvailable[0]
