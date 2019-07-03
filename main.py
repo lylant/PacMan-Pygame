@@ -1,13 +1,13 @@
 from tkinter import Tk, Label, Entry, Button, PhotoImage, messagebox, END, Canvas
 from threading import Timer
 from data import field
-import os
+import os, pygame
 
 
 class MainEngine(object):
 
     def __init__(self):
-        
+
         # initialize tkinter window parameters
         self.root = Tk()
         self.root.title("Pac-Man")
@@ -20,6 +20,7 @@ class MainEngine(object):
         self.isPlaying = False          # check the game is actually started (moving) or not
         self.statusStartingTimer = 0    # countdown timer for 'get ready' feature
         self.statusDeadTimer = 0        # countdown timer for dead event
+        self.statusFinishTimer = 0      # countdown timer for clear event
         self.statusScore = 0            # score
         self.statusLife = 2             # life
 
@@ -61,6 +62,12 @@ class MainEngine(object):
         for i in range(11):
             self.wSprites['pacmanDeath{}'.format(i+1)] = PhotoImage(file="resource/sprite_pacman_death{}.png".format(i+1))
 
+
+        self.wSounds = {
+            'chomp1': pygame.mixer.Sound(file="resource/sound_chomp1.wav"),
+            'chomp2': pygame.mixer.Sound(file="resource/sound_chomp2.wav")
+        }
+
         # call the next phase of initialization: generate widgets
         self.__initWidgets()
 
@@ -88,7 +95,6 @@ class MainEngine(object):
         self.root.bind('<Down>', self.inputResponseDown)
         self.root.bind('<Escape>', self.inputResponseEsc)
         self.root.bind('<Return>', self.inputResponseReturn)
-        self.root.protocol("WM_DELETE_WINDOW", self.inputResponseExit)
 
         # call the next phase of initialization: level selection
         self.__initLevelSelect()
@@ -107,7 +113,11 @@ class MainEngine(object):
     def lvSelect(self):
         try:
             self.__initLevelOnce(self.wLvEntry.get())
-        
+
+        except ValueError:
+            self.wLvEntry.delete(0, END)  # clear the text box
+            messagebox.showinfo("Error!", "Enter a valid level.")
+
         except FileNotFoundError:
             self.wLvEntry.delete(0, END)  # clear the text box
             messagebox.showinfo("Error!", "Enter a valid level.")
@@ -132,7 +142,7 @@ class MainEngine(object):
 
     def __initLevel(self, level):
 
-        self.currentLv = level
+        self.currentLv = int(level)
         field.gameEngine.levelGenerate(level)   # generate selected/passed level
 
         # check the name of the object and bind the sprite, adjust their coordinate
@@ -142,14 +152,14 @@ class MainEngine(object):
                 if field.gameEngine.levelObjects[i][j].name == "empty":
                     pass
                 elif field.gameEngine.levelObjects[i][j].name == "wall":
-                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'])
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'], state='normal')
                     self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "cage":
-                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['cage'])
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['cage'], state='normal')
                     self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
                 elif field.gameEngine.levelObjects[i][j].name == "pellet":
                     if field.gameEngine.levelObjects[i][j].isDestroyed == False:
-                        self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['pellet'])
+                        self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['pellet'], state='normal')
                         self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
                     else:
                         pass
@@ -168,12 +178,14 @@ class MainEngine(object):
                                     30+field.gameEngine.movingObjectGhosts[i].coordinateRel[1]*17+8)
                 self.wGameCanv.itemconfig(self.wGameCanvMovingObjects[i+1], image=self.wSprites['ghost{}L1'.format(i+1)], state='normal')
 
-        
+
         # advance to next phase: get ready!
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("resource/sound_intro.mp3")
+        pygame.mixer.music.play(loops=0, start=0.0)
         self.isLevelGenerated = True
-        self.readyTimer = PerpetualTimer(0.70, self.__initLevelStarting)
-        self.readyTimer.start()
-            
+        self.timerReady = PerpetualTimer(0.55, self.__initLevelStarting)
+        self.timerReady.start()
 
 
     def inputResponseLeft(self, event):
@@ -184,12 +196,12 @@ class MainEngine(object):
 
     def inputResponseUp(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Up"
-    
+
     def inputResponseDown(self, event):
         field.gameEngine.movingObjectPacman.dirNext = "Down"
 
     def inputResponseEsc(self, event):
-        self.loopTimer.stop() 
+        self.timerLoop.stop()
         messagebox.showinfo("Game Over!", "You hit the escape key!")
 
     def inputResponseReturn(self, event):
@@ -198,10 +210,6 @@ class MainEngine(object):
             self.gameStartingTrigger()
         else:
             pass
-
-    def inputResponseExit(self):
-        self.loopTimer.stop()
-
 
 
 
@@ -220,18 +228,23 @@ class MainEngine(object):
 
         else:   # after 8 loop, the main game will be started with loopFunction
             self.gameStartingTrigger()
-        
+
 
     def gameStartingTrigger(self):
         ## stop to print out 'get ready' and start the game
-        self.readyTimer.stop()
+        self.timerReady.stop()
         self.wGameCanv.itemconfigure(self.wGameCanvLabelGetReady, state='hidden')
         self.statusStartingTimer = 0
         self.isPlaying = True
         field.gameEngine.movingObjectPacman.dirNext = "Left"
 
-        self.loopTimer = PerpetualTimer(0.06, self.loopFunction)
-        self.loopTimer.start()
+        # ghost sound as music
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("resource/sound_ghost.ogg")
+        pygame.mixer.music.play(-1)
+
+        self.timerLoop = PerpetualTimer(0.045, self.loopFunction)
+        self.timerLoop.start()
 
 
     def loopFunction(self):
@@ -304,7 +317,7 @@ class MainEngine(object):
 
             # check the object passed field edges
             if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 17*27+17)
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, 17*31+17)
                 field.gameEngine.movingObjectPacman.dirEdgePassed = False
             else:
                 pass
@@ -327,7 +340,7 @@ class MainEngine(object):
 
             # check the object passed field edges
             if field.gameEngine.movingObjectPacman.dirEdgePassed == True:
-                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -(17*27+17))
+                self.wGameCanv.move(self.wGameCanvMovingObjects[0], 0, -(17*31+17))
                 field.gameEngine.movingObjectPacman.dirEdgePassed = False
             else:
                 pass
@@ -401,7 +414,7 @@ class MainEngine(object):
 
                     # check the object passed field edges
                     if field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed == True:
-                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 17*27+17)
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, 17*31+17)
                         field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed = False
                     else:
                         pass
@@ -424,7 +437,7 @@ class MainEngine(object):
 
                     # check the object passed field edges
                     if field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed == True:
-                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -(17*27+17))
+                        self.wGameCanv.move(self.wGameCanvMovingObjects[ghostNo+1], 0, -(17*31+17))
                         field.gameEngine.movingObjectGhosts[ghostNo].dirEdgePassed = False
                     else:
                         pass
@@ -467,16 +480,90 @@ class MainEngine(object):
                 if field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed == False:  # check the pellet is alive
                     field.gameEngine.levelObjects[coordRelP[0]][coordRelP[1]].isDestroyed = True # destroy the pellet
                     self.wGameCanv.itemconfigure(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]], state='hidden') # remove from the canvas
-                    #self.wGameCanv.delete(self.wGameCanvObjects[coordRelP[0]][coordRelP[1]]) # remove from the canvas
+
+                    # play the sound (wa, ka, wa, ka, ...)
+                    if self.statusScore % 20 == 0:
+                        self.wSounds['chomp1'].play(loops=0)
+                    else:
+                        self.wSounds['chomp2'].play(loops=0)
+
                     self.statusScore += 10 # adjust the score
                     self.wGameLabelScore.configure(text=("Score: " + str(self.statusScore))) # showing on the board
+                    field.gameEngine.levelPelletRemaining -= 1 # adjust the remaining pellet numbers
+
+                    if field.gameEngine.levelPelletRemaining == 0:
+                        self.encounterEventLevelClear() # level clear
+                    else:
+                        pass
+
+
                 else:   # the pellet is already taken
                     pass
 
         else: # pacman is not on grid coordinate
             pass
 
+
+    def encounterEventLevelClear(self):
+        # pause the game
+        pygame.mixer.music.stop()
+        self.timerLoop.stop()
+        self.isPlaying = False
+
+        for i in range(5):  # hide the moving objects' sprite
+            self.wGameCanv.itemconfigure(self.wGameCanvMovingObjects[i], state='hidden')
+
+        self.timerClear = PerpetualTimer(0.4, self.encounterEventLevelClearLoop)
+        self.timerClear.start()
+
+
+    def encounterEventLevelClearLoop(self):
+        self.statusFinishTimer += 1   # countdown timer for this function
+
+        if self.statusFinishTimer < 9:
+            # wall blinking function
+            if self.statusFinishTimer % 2 == 1:
+                self.wSprites.update({'wall': PhotoImage(file="resource/sprite_wall2.png")})                
+                for j in range(32):
+                    for i in range(28):
+                        if field.gameEngine.levelObjects[i][j].name == "wall":
+                            self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'])
+                        else:
+                            pass
+            else:
+                self.wSprites.update({'wall': PhotoImage(file="resource/sprite_wall.png")})
+                for j in range(32):
+                    for i in range(28):
+                        if field.gameEngine.levelObjects[i][j].name == "wall":
+                            self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'])
+                        else:
+                            pass
+
+        else:   # after 11 loop, the level clear process will be continued
+            self.encounterEventLevelClearFinish()
+
+
+    def encounterEventLevelClearFinish(self):
+        self.timerClear.stop()
+        self.statusFinishTimer = 0
+
+        # reset all values and hide the sprite (or level generate process will be shown)
+        for j in range(32):
+            for i in range(28):
+                field.gameEngine.levelObjects[i][j].reset('')
+                self.wGameCanv.itemconfigure(self.wGameCanvObjects[i][j], state='hidden')
+
+        field.gameEngine.movingObjectPacman.reset('Pacman')
+
+        for n in range(4):
+            field.gameEngine.movingObjectGhosts[n].reset('Ghost')
         
+        self.currentLv += 1
+        self.isLevelGenerated = False
+        self.__initLevel(self.currentLv)
+
+
+
     def encounterEventDead(self):
 
         self.statusLife -= 1    # subtract remaining life
@@ -487,11 +574,13 @@ class MainEngine(object):
             pass
 
         # pause the game
-        self.loopTimer.stop()
+        self.isPlaying = False
+        pygame.mixer.music.stop()
+        self.timerLoop.stop()
 
         # call the death loop
-        self.deathTimer = PerpetualTimer(0.11, self.encounterEventDeadLoop)
-        self.deathTimer.start()
+        self.timerDeath = PerpetualTimer(0.10, self.encounterEventDeadLoop)
+        self.timerDeath.start()
 
 
     def encounterEventDeadLoop(self):
@@ -502,6 +591,9 @@ class MainEngine(object):
             pass
 
         elif self.statusDeadTimer == 6:
+            # sound effect
+            pygame.mixer.music.load("resource/sound_death.mp3")
+            pygame.mixer.music.play(loops=0, start=0.0)
             for i in range(4):  # hide the ghost sprite and initialize their status
                 self.wGameCanv.itemconfigure(self.wGameCanvMovingObjects[i+1], state='hidden')
                 field.gameEngine.movingObjectGhosts[i].isActive = False
@@ -520,22 +612,23 @@ class MainEngine(object):
         else:
             self.encounterEventDeadRestart()
 
-    
+
     def encounterEventDeadRestart(self):
         ## stop the death event and restart the game
         if self.statusLife >= 0:
-            self.statusDeadTimer = 0
-            self.deathTimer.stop()
-            self.isPlaying = False
+            self.statusDeadTimer = 0    # reset the countdown timer
+            self.timerDeath.stop()      # stopping the timer for death event
+            self.isPlaying = False      # isPlaying flag check
+            field.gameEngine.levelPelletRemaining = 0   # Pellet count reset (will be re-counted in __initLevel)
             self.__initLevel(self.currentLv)
         
         else:   # game over
             self.statusDeadTimer = 0
-            self.deathTimer.stop()
-            self.gameOverTimer = PerpetualTimer(0.70, self.encounterEventDeadGameOver)
+            self.timerDeath.stop()
+            self.gameOverTimer = PerpetualTimer(0.55, self.encounterEventDeadGameOver)
             self.gameOverTimer.start()
 
-    
+
 
     def encounterEventDeadGameOver(self):
         self.statusDeadTimer += 1
@@ -550,7 +643,7 @@ class MainEngine(object):
 
         else:   # after 8 loop, the game is completely finished
             self.gameOverTimer.stop()
-        
+
 
 
 
@@ -579,5 +672,9 @@ class PerpetualTimer(object):
             self.thread.cancel()
             self.isRunning = False
 
+
+# initialize pygame for sound effects
+pygame.mixer.init(22050, -16, 2, 64)
+pygame.init()
 
 mainEngine = MainEngine()

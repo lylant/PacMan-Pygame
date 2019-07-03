@@ -6,6 +6,7 @@ class GameEngine(object):
 
     def __init__(self):
 
+        self.levelPelletRemaining = 0
         self.levelObjects = [[levelObject("empty") for j in range(32)] for i in range(28)]   # generate 28x32 empty objects
         self.movingObjectPacman = movingObject("Pacman")
         self.movingObjectGhosts = [movingObject("Ghost") for n in range(4)]
@@ -37,10 +38,27 @@ class GameEngine(object):
                     self.levelObjects[i][levelLineNo].name = "wall"
                 elif levelLineSplit[i] == "$":  # ghost spawn point
                     self.levelObjects[i][levelLineNo].name = "cage"
+
+
                 elif levelLineSplit[i] == ".":  # score pellet
                     self.levelObjects[i][levelLineNo].name = "pellet"
+
+                    # checking how many pellets are in the level
+                    if self.levelObjects[i][levelLineNo].isDestroyed == False:
+                        self.levelPelletRemaining += 1
+                    else:
+                        pass
+
+
                 elif levelLineSplit[i] == "*":  # power pellet
                     self.levelObjects[i][levelLineNo].name = "powerup"
+
+                    # checking how many pellets are in the level
+                    if self.levelObjects[i][levelLineNo].isDestroyed == False:
+                        self.levelPelletRemaining += 1
+                    else:
+                        pass
+
 
                 elif levelLineSplit[i] == "@":  # pacman
                     self.levelObjects[i][levelLineNo].name = "empty"
@@ -65,6 +83,7 @@ class GameEngine(object):
                             self.movingObjectGhosts[n].coordinateAbs[0] = i * 4
                             self.movingObjectGhosts[n].coordinateAbs[1] = levelLineNo * 4
                             break   # break current loop (with generator 'n')
+
 
                 elif levelLineSplit[i] == "%":  # caged ghost
                     self.levelObjects[i][levelLineNo].name = "empty"
@@ -139,18 +158,21 @@ class GameEngine(object):
 class levelObject(object):
 
     def __init__(self, name):
+        self.reset(name)
+
+    def reset(self, name):
         self.name = name
         self.isDestroyed = False
-
-    def moveRequest(self):
-        return self.name
-
 
 
 
 class movingObject(object):
 
     def __init__(self, name):
+        self.reset(name)
+
+
+    def reset(self, name):
         self.name = name
         self.isActive = False       # check this object is an active ghost (not used for pacman)
         self.isCaged = True         # check this object is caged (only for ghost)
@@ -405,8 +427,5 @@ class movingObject(object):
         elif self.dirCurrent == "Stop":
             pass
 
-        if self.isActive == True and self.isCaged == False:
-            #print("cRel:", self.coordinateRel[0], self.coordinateRel[1], "cAbs:", self.coordinateAbs[0], self.coordinateAbs[1], "dir:", self.dirCurrent)
-            pass
 
 gameEngine = GameEngine()
