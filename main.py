@@ -551,7 +551,7 @@ class MainEngine(object):
         for j in range(32):
             for i in range(28):
                 field.gameEngine.levelObjects[i][j].reset('')
-                self.wGameCanv.itemconfigure(self.wGameCanvObjects[i][j], state='hidden')
+                #self.wGameCanv.itemconfigure(self.wGameCanvObjects[i][j], state='hidden')
 
         field.gameEngine.movingObjectPacman.reset('Pacman')
 
