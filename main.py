@@ -150,7 +150,7 @@ class MainEngine(object):
             for i in range(28):
 
                 if field.gameEngine.levelObjects[i][j].name == "empty":
-                    pass
+                    self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], state='hidden')
                 elif field.gameEngine.levelObjects[i][j].name == "wall":
                     self.wGameCanv.itemconfig(self.wGameCanvObjects[i][j], image=self.wSprites['wall'], state='normal')
                     self.wGameCanv.coords(self.wGameCanvObjects[i][j], 3+i*17+8, 30+j*17+8)
