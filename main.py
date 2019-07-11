@@ -138,8 +138,6 @@ class MainEngine(object):
         self.wGameLabelLife.place(x=420, y=5)
 
 
-
-
     def __initLevel(self, level):
 
         self.currentLv = int(level)
@@ -212,7 +210,6 @@ class MainEngine(object):
             pass
 
 
-
     def __initLevelStarting(self):
         self.statusStartingTimer += 1   # countdown timer for this function
 
@@ -260,8 +257,6 @@ class MainEngine(object):
         self.spritePacman(field.gameEngine.movingObjectPacman.coordinateRel, field.gameEngine.movingObjectPacman.coordinateAbs)
         self.spriteGhost(coordGhosts)
         self.encounterEvent(field.gameEngine.movingObjectPacman.coordinateRel, field.gameEngine.movingObjectPacman.coordinateAbs)
-
-
 
 
     def spritePacman(self, coordRelP, coordAbsP):
@@ -467,6 +462,9 @@ class MainEngine(object):
         if encounterMov == 'dead':
             self.encounterEventDead()
 
+        #elif encounterMov in 'beat':
+        #    self.encounterEventBeat()
+
         else:
             pass
 
@@ -563,7 +561,6 @@ class MainEngine(object):
         self.__initLevel(self.currentLv)
 
 
-
     def encounterEventDead(self):
 
         self.statusLife -= 1    # subtract remaining life
@@ -627,7 +624,6 @@ class MainEngine(object):
             self.timerDeath.stop()
             self.gameOverTimer = PerpetualTimer(0.55, self.encounterEventDeadGameOver)
             self.gameOverTimer.start()
-
 
 
     def encounterEventDeadGameOver(self):

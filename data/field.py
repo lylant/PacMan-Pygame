@@ -126,8 +126,16 @@ class GameEngine(object):
             n = self.movingObjectGhosts[i].coordinateAbs[1] # ghost's y coord.
 
             if self.movingObjectGhosts[i].isActive == True and self.movingObjectGhosts[i].isCaged == False:
+
                 if (m-3 < x < m+3) and (n-3 < y < n+3):   # check x coord. and y coord. parallelly, this is little bit benign determine (we can use +-4)
-                    result = "dead"
+                    # check the pacman is powered up or not, the ghost is neutralized or not
+                    if self.movingObjectPacman.isPoweredUp == False and self.movingObjectGhosts[i].isNeutralized == False:
+                        result = "dead"
+                    elif self.movingObjectPacman.isPoweredUp == True and self.movingObjectGhosts[i].isNeutralized == False:
+                        result = "beat{}".format(i)
+                    else:   # if the ghost is neutralized, pass
+                        pass
+
                 else:
                     pass
             else:
@@ -174,6 +182,9 @@ class movingObject(object):
 
     def reset(self, name):
         self.name = name
+        self.isPoweredUp = False    # check pacman is powered up
+        self.isFleeing = False      # check the ghost is fleeing (beatable)
+        self.isNeutralized = False  # check the ghost is beaten by power pacman
         self.isActive = False       # check this object is an active ghost (not used for pacman)
         self.isCaged = True         # check this object is caged (only for ghost)
         self.dirCurrent = "Left"    # current direction, if cannot move w/ dirNext, the object will proceed this direction
