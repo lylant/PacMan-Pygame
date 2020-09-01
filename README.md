@@ -21,7 +21,7 @@ This repo involves producing a Pac-Man style game in Python.
 
 1. Clone the repo with Git
 2. Check you installed Python
-3. Check you installed [Pygame](https://www.pygame.org, "Pygame Link")
+3. Check you installed [Pygame](https://www.pygame.org "Pygame Link")
 4. Execute *main.py* with Python
 
 
