@@ -30,16 +30,6 @@ As the product is not using any game framework or engine, the installation proce
 2. Copy the product into the new directory.
 
 
-# Project Details
-
-## Installation
-
-1. Clone the repo with Git
-2. Check you installed Python
-3. Check you installed [Pygame](https://www.pygame.org "Pygame Link")
-4. Execute *main.py* with Python
-
-
 ## Map Generator
 
 The map generator will read a map file in `/resource` directory. The file name should be `level#.txt` or `level##.txt`, `##` refers to the number of the level. The file contains 32×32 characters, each character indicates a block/item in the game field.
