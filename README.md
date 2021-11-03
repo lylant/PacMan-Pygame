@@ -10,6 +10,10 @@ This project aims to practice building a Pac-Man style game using Python.
 * **Game Levels:** All levels will be generated based on the map data from the resource files.
 
 
+## Demo Video Available
+* [Link](https://youtu.be/Xkj524OOgvA "Public Demo Video on YouTube")
+
+
 ## Main Tech-Stacks for the Project
 * Python
 
